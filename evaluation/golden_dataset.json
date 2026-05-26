@@ -1,0 +1,18 @@
+{
+  "version": "v1",
+  "description": "Curated question/answer pairs used to detect regressions in the RAG pipeline. Update whenever prompts or retrieval logic change.",
+  "items": [
+    {
+      "id": "q-0001",
+      "question": "What does this template provide?",
+      "expected_keywords": ["claude code", "template", "rag", "agents"],
+      "min_score": 0.7
+    },
+    {
+      "id": "q-0002",
+      "question": "How do I run the evaluation suite?",
+      "expected_keywords": ["make eval", "golden", "dataset"],
+      "min_score": 0.7
+    }
+  ]
+}

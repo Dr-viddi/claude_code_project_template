@@ -1,0 +1,21 @@
+# Personal Overrides (gitignored)
+
+Copy this file to `CLAUDE.local.md` and edit. It is loaded after `CLAUDE.md` and
+overrides anything declared there. Never commit it.
+
+## Local environment paths
+
+- Python venv: `~/.venvs/<project>`
+- Data dir: `~/data/<project>`
+- Redis URL: `redis://localhost:6379/0`
+
+## Debugging shortcuts
+
+- Bypass semantic cache: set `CACHE_BYPASS=1`
+- Verbose tracing: `LOG_LEVEL=DEBUG`
+- Use the local vector index instead of remote: `VECTOR_BACKEND=local`
+
+## Private preferences
+
+- I prefer running `pytest -x -vv` while iterating.
+- When asked to draft a commit message, follow Conventional Commits (`feat:`, `fix:`...).

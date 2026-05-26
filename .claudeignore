@@ -1,0 +1,42 @@
+# Files Claude Code should NEVER read.
+# Critical for large monorepos and to keep secrets / noise out of context.
+
+# Secrets
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+
+# Generated / vendored
+node_modules/
+dist/
+build/
+.next/
+*.lock
+package-lock.json
+poetry.lock
+uv.lock
+
+# Heavy data
+data/raw/
+data/processed/
+*.parquet
+*.arrow
+*.npz
+*.pkl
+*.bin
+*.onnx
+
+# Eval artifacts
+evaluation/eval_results/
+
+# Local Claude state
+.claude/agent-memory/
+.claude/worktrees/
+CLAUDE.local.md
+
+# Logs
+*.log
+logs/

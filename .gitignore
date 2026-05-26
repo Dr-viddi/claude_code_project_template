@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+
+# Claude Code local-only files
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/agent-memory/
+.claude/worktrees/
+
+# Data
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Eval outputs
+evaluation/eval_results/*
+!evaluation/eval_results/.gitkeep
+
+# Frontend build
+frontend/static/build/
+node_modules/
