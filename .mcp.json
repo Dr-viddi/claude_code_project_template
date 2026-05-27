@@ -1,28 +1,28 @@
 {
   "$schema": "https://json.schemastore.org/claude-mcp.json",
-  "_comment": "External tool connections via Model Context Protocol. Committed to git so the whole team shares the same external tools. Use environment variables for secrets - never hardcode tokens here.",
-  "mcpServers": {
+
+  "_intention": "External tool connections for Claude Code, via the Model Context Protocol. Committed to git so the whole team shares the same external surface. Secrets come from env vars - never hardcode tokens here.",
+
+  "_what_this_should_contain": [
+    "One entry per server under mcpServers.<name>.",
+    "Each entry declares the command and args used to launch the server (typically `npx -y @modelcontextprotocol/server-<name>`).",
+    "Sensitive values reference env vars with ${VAR} - defined in .env.example and listed in CLAUDE.md."
+  ],
+
+  "_example_mcpServers": {
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" }
     },
     "filesystem": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "${PROJECT_ROOT}/data"
-      ]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${PROJECT_ROOT}/data"]
     },
     "postgres": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres"],
-      "env": {
-        "POSTGRES_URL": "${DATABASE_URL}"
-      }
+      "env": { "POSTGRES_URL": "${DATABASE_URL}" }
     },
     "slack": {
       "command": "npx",
@@ -32,5 +32,7 @@
         "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
       }
     }
-  }
+  },
+
+  "mcpServers": {}
 }

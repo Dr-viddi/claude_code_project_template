@@ -1,13 +1,19 @@
 # Claude Code Project Template
 
-A production-ready template repository for projects developed with **Claude Code** as the
-primary AI pair-programmer. The layout follows the conventions documented in the Claude
+A **scaffold** for projects developed with **Claude Code** as the primary AI
+pair-programmer. The layout follows the conventions documented in the Claude
 Code Anatomy guides (2026): a `CLAUDE.md` "project brain", a `.claude/` directory
-holding settings, rules, commands, skills, sub-agents and hooks, plus a complete
-Python AI-application skeleton (RAG pipeline, agents, evaluation, observability,
-security guards).
+holding settings, rules, commands, skills, sub-agents and hooks, plus the
+directory tree for a production Python AI application (RAG pipeline, agents,
+evaluation, observability, security guards).
 
-Clone it, rename it, run `/init` to refresh `CLAUDE.md`, and start building.
+> **This is not a runnable project.** Source files contain comment-only stubs
+> describing *intent* and *what each file should contain*, with example snippets
+> commented out. Copy this repo, rename it, then fill in the stubs to start
+> building.
+
+Clone it, rename it, run `/init` inside Claude Code to refresh `CLAUDE.md`
+against your actual code, and replace the stub comments with real implementations.
 
 ---
 
@@ -51,15 +57,19 @@ cd <your-new-repo>
 cp CLAUDE.local.md.example CLAUDE.local.md
 cp .claude/settings.local.json.example .claude/settings.local.json
 
-# 3. Install dependencies
-pip install -e ".[dev]"
-
-# 4. Open in Claude Code
+# 3. Open in Claude Code
 claude
 ```
 
-Inside the Claude Code session, run `/init` to regenerate `CLAUDE.md` from your
-actual codebase, and `/review` or `/fix-issue` for repeatable workflows.
+Inside the Claude Code session:
+
+- Edit `CLAUDE.md` to describe your project (name, purpose, stack).
+- Walk each stub file. Each one explains its intended role and includes a
+  commented example. Replace the comments with real code as you implement.
+- Run `/init` once you have meaningful code so Claude can regenerate
+  `CLAUDE.md` from the live tree.
+- Use `/review` and `/fix-issue` (defined in `.claude/commands/`) for
+  repeatable workflows.
 
 ## Conventions
 

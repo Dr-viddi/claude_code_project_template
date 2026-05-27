@@ -1,18 +1,19 @@
 {
+  "_description": "Curated question/answer pairs used to detect regressions in the RAG pipeline. Replace the example items below with your own. Update this file whenever prompts or retrieval logic change (see CLAUDE.md workflow rule #4).",
+  "_schema": {
+    "id": "stable identifier; never renumbered",
+    "question": "exact prompt to send to the pipeline",
+    "expected_keywords": "list of substrings that must appear in the answer",
+    "min_score": "minimum semantic-similarity score against a reference answer",
+    "category": "optional tag for slicing results (e.g. 'multi-hop', 'refusal')"
+  },
+  "_example_item": {
+    "id": "q-0001",
+    "question": "What does this template provide?",
+    "expected_keywords": ["claude code", "template", "rag"],
+    "min_score": 0.7,
+    "category": "smoke"
+  },
   "version": "v1",
-  "description": "Curated question/answer pairs used to detect regressions in the RAG pipeline. Update whenever prompts or retrieval logic change.",
-  "items": [
-    {
-      "id": "q-0001",
-      "question": "What does this template provide?",
-      "expected_keywords": ["claude code", "template", "rag", "agents"],
-      "min_score": 0.7
-    },
-    {
-      "id": "q-0002",
-      "question": "How do I run the evaluation suite?",
-      "expected_keywords": ["make eval", "golden", "dataset"],
-      "min_score": 0.7
-    }
-  ]
+  "items": []
 }

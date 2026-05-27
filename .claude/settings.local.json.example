@@ -1,13 +1,20 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment": "Per-machine overrides. Copy to settings.local.json (gitignored). Merged on top of settings.json.",
-  "permissions": {
-    "allow": [
-      "Bash(open:*)",
-      "Bash(code:*)"
-    ]
-  },
-  "env": {
-    "LOG_LEVEL": "DEBUG"
+
+  "_intention": "Per-machine Claude Code overrides. Copy to settings.local.json (gitignored). Merged on top of settings.json - your local additions don't affect teammates.",
+
+  "_what_this_should_contain": [
+    "Personal permission additions (e.g. tools you trust on your own machine).",
+    "Developer-specific env vars (verbose logging, local data paths).",
+    "Hooks you want to layer on top of the team's default set."
+  ],
+
+  "_example": {
+    "permissions": {
+      "allow": ["Bash(open:*)", "Bash(code:*)"]
+    },
+    "env": {
+      "LOG_LEVEL": "DEBUG"
+    }
   }
 }

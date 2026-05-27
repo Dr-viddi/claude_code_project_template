@@ -1,33 +1,27 @@
-"""Top-level RAG pipeline: rewrite → route → cache → retrieve → rerank → generate."""
-
-from __future__ import annotations
-
-from app.config import Settings
-from app.models import ChatRequest, ChatResponse
-
-
-class RAGPipeline:
-    def __init__(
-        self,
-        rewriter,
-        router,
-        cache,
-        retriever,
-        reranker,
-        generator,
-        guards,
-    ) -> None:
-        self._rewriter = rewriter
-        self._router = router
-        self._cache = cache
-        self._retriever = retriever
-        self._reranker = reranker
-        self._generator = generator
-        self._guards = guards
-
-    @classmethod
-    def from_settings(cls, settings: Settings) -> "RAGPipeline":
-        raise NotImplementedError("Wire up concrete implementations here.")
-
-    async def run(self, req: ChatRequest) -> ChatResponse:
-        raise NotImplementedError
+# app/services/rag_pipeline.py
+#
+# Intention:
+#   Top-level orchestrator for a single chat turn. Wires together every other
+#   service and component in the correct order. This is the file most likely to
+#   change when you add a new pipeline stage.
+#
+# What this file should contain:
+#   - A `RAGPipeline` class with:
+#       * Constructor taking the dependencies it orchestrates (rewriter, router,
+#         cache, retriever, reranker, generator, guards).
+#       * A `from_settings(settings)` classmethod that builds concrete
+#         implementations from `app.config.Settings`.
+#       * An async `run(request)` method implementing the canonical flow:
+#           input_guard -> query_rewriter -> query_router
+#             -> semantic_cache (hit? short-circuit)
+#             -> retriever -> reranker -> document_grader
+#             -> prompt registry -> LLM
+#             -> output_filter -> response
+#         Every stage opens a tracing span via `observability/tracer.py`.
+#
+# Example (commented):
+#
+#   class RAGPipeline:
+#       @classmethod
+#       def from_settings(cls, settings: Settings) -> "RAGPipeline": ...
+#       async def run(self, req: ChatRequest) -> ChatResponse: ...

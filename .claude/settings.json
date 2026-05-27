@@ -1,53 +1,43 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment": "Team-shared Claude Code settings. Committed to git. Per-machine overrides go in settings.local.json (gitignored).",
-  "permissions": {
-    "allow": [
-      "Bash(make:*)",
-      "Bash(pytest:*)",
-      "Bash(python:*)",
-      "Bash(pip:*)",
-      "Bash(uv:*)",
-      "Bash(ruff:*)",
-      "Bash(black:*)",
-      "Bash(mypy:*)",
-      "Bash(docker:*)",
-      "Bash(docker-compose:*)",
-      "Bash(git status)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(ls:*)",
-      "Bash(find:*)",
-      "Bash(grep:*)",
-      "Bash(rg:*)",
-      "Read(*)",
-      "Edit(*)",
-      "Write(*)"
-    ],
-    "deny": [
-      "Bash(rm -rf /)",
-      "Bash(git push --force*)",
-      "Bash(git reset --hard*)",
-      "Bash(curl * | sh)",
-      "Bash(curl * | bash)"
-    ]
-  },
-  "env": {
+
+  "_intention": "Team-shared Claude Code settings. Committed to git so every developer gets the same permission allowlist, env vars, and hooks. Per-machine tweaks belong in settings.local.json (gitignored).",
+
+  "_what_this_should_contain": [
+    "permissions.allow - tools and bash patterns auto-approved without a prompt.",
+    "permissions.deny  - tools and bash patterns rejected outright (deny wins).",
+    "env               - environment variables exposed to every Claude Code session in this repo.",
+    "hooks.PreToolUse  - scripts that gate tool calls before they run (e.g. validate-bash.sh).",
+    "hooks.PostToolUse - scripts that run after a tool call (e.g. format-python.sh)."
+  ],
+
+  "_example_permissions_allow": [
+    "Bash(make:*)",
+    "Bash(pytest:*)",
+    "Bash(git status)",
+    "Bash(git diff:*)",
+    "Read(*)",
+    "Edit(*)",
+    "Write(*)"
+  ],
+
+  "_example_permissions_deny": [
+    "Bash(rm -rf /)",
+    "Bash(git push --force*)",
+    "Bash(git reset --hard*)"
+  ],
+
+  "_example_env": {
     "PYTHONDONTWRITEBYTECODE": "1",
     "PYTHONUNBUFFERED": "1"
   },
-  "hooks": {
+
+  "_example_hooks": {
     "PreToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/validate-bash.sh"
-          }
+          { "type": "command", "command": ".claude/hooks/validate-bash.sh" }
         ]
       }
     ],
@@ -55,12 +45,13 @@
       {
         "matcher": "Edit|Write",
         "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/format-python.sh"
-          }
+          { "type": "command", "command": ".claude/hooks/format-python.sh" }
         ]
       }
     ]
-  }
+  },
+
+  "permissions": { "allow": [], "deny": [] },
+  "env": {},
+  "hooks": {}
 }

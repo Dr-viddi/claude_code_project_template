@@ -1,2 +1,14 @@
-streamlit>=1.32
-httpx>=0.27
+# frontend/requirements.txt
+#
+# Intention:
+#   Pinned dependencies for the frontend image. Kept separate from the API's
+#   pyproject.toml so the two containers stay independent.
+#
+# What this file should contain:
+#   - One package per line, ideally version-pinned.
+#   - Only what the UI needs - no API-side libraries.
+#
+# Example (commented; remove the leading '#' to activate):
+#
+# streamlit>=1.32
+# httpx>=0.27

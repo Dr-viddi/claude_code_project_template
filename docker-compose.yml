@@ -1,48 +1,57 @@
-services:
-  app:
-    build:
-      context: .
-      dockerfile: app/Dockerfile
-    env_file: .env
-    ports:
-      - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_started
-
-  frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-    environment:
-      API_URL: http://app:8000
-    ports:
-      - "8501:8501"
-    depends_on:
-      - app
-
-  db:
-    image: pgvector/pgvector:pg16
-    environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: app
-    ports:
-      - "5432:5432"
-    volumes:
-      - dbdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  cache:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-
-volumes:
-  dbdata:
+# docker-compose.yml
+#
+# Intention:
+#   Local development stack. Brings up the API, the frontend, and the
+#   stateful dependencies (database with vector extension, cache) with a single
+#   `docker compose up --build`.
+#
+# What this file should declare:
+#   - `app`     - built from `app/Dockerfile`, env_file `.env`, exposes 8000.
+#   - `frontend`- built from `frontend/Dockerfile`, depends on `app`, exposes 8501.
+#   - `db`      - Postgres + pgvector (or your chosen vector store) with a
+#                 healthcheck so `app` waits for readiness.
+#   - `cache`   - Redis for semantic cache + conversation memory.
+#   - Named volumes for the database so data survives container restarts.
+#
+# Example (commented; remove the leading '#' to activate):
+#
+# services:
+#   app:
+#     build:
+#       context: .
+#       dockerfile: app/Dockerfile
+#     env_file: .env
+#     ports: ["8000:8000"]
+#     depends_on:
+#       db:    { condition: service_healthy }
+#       cache: { condition: service_started }
+#
+#   frontend:
+#     build:
+#       context: .
+#       dockerfile: frontend/Dockerfile
+#     environment:
+#       API_URL: http://app:8000
+#     ports: ["8501:8501"]
+#     depends_on: [app]
+#
+#   db:
+#     image: pgvector/pgvector:pg16
+#     environment:
+#       POSTGRES_USER: app
+#       POSTGRES_PASSWORD: app
+#       POSTGRES_DB: app
+#     ports: ["5432:5432"]
+#     volumes: [ "dbdata:/var/lib/postgresql/data" ]
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U app"]
+#       interval: 5s
+#       timeout: 3s
+#       retries: 10
+#
+#   cache:
+#     image: redis:7-alpine
+#     ports: ["6379:6379"]
+#
+# volumes:
+#   dbdata:
