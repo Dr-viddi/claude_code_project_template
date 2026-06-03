@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "claude-code-project-template"
+name = "production-agent"
 version = "0.1.0"
-description = "Runnable starter template for production AI agents, wired for Claude Code."
+description = "A runnable, production-shaped AI agent: routing, tools, memory, evals, observability, and a runtime defense harness. Wired for Claude Code."
 requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }
@@ -59,7 +59,7 @@ ignore = ["S104"]
 "tests/*" = ["S101"]
 # HarnessBlocked / ReviewRequired are control-flow signals, not errors - the
 # *Error suffix (N818) would misrepresent them.
-"security/adrian_init.py" = ["N818"]
+"security/harness.py" = ["N818"]
 
 [tool.black]
 line-length = 100

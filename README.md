@@ -1,20 +1,41 @@
-# Claude Code Project Template
+# production-agent
 
-A **scaffold** for production AI **agent** projects developed with **Claude Code**
-as the primary AI pair-programmer. It combines two best-practice blueprints:
+A **runnable, production-shaped AI agent**, developed with **Claude Code** as the
+primary AI pair-programmer. It pairs two blueprints:
 
+- **The production-agent architecture** - an agent loop (plan→act→observe), tools,
+  layered memory, intent routing, an 8-layer runtime defense harness, evaluation
+  with judges, observability, and deploy configs.
 - **The Claude Code project anatomy** - a `CLAUDE.md` "project brain" and a
   `.claude/` directory holding settings, rules, commands, skills, sub-agents and hooks.
-- **The production-agent architecture** - an agent core (state-machine graph,
-  nodes, tools, prompts), memory, routing, an 8-layer runtime defense harness,
-  evaluation with judges, observability, and deploy configs.
 
-> **It runs out of the box.** The template ships a minimal but working vertical
-> slice: `make install && make serve` starts a real FastAPI agent that classifies
-> intent, calls a tool, gates the call through the defense harness, and answers -
-> with **no API key, no database, and no internet** (a deterministic `EchoLLM`,
-> in-memory stores, and an audit-mode harness). `make check` (lint + type + test)
-> and `make eval` are green. Swap the stubbed pieces for real ones as you build.
+It serves both as a **starting point for new agent projects** and as a **reference**
+for what a production agent repo contains.
+
+> **It runs out of the box.** `make install && make serve` starts a real FastAPI
+> agent that classifies intent, calls a tool, gates the call through the defense
+> harness, and answers - with **no API key, no database, and no internet** (a
+> deterministic `EchoLLM`, in-memory stores, and an audit-mode harness).
+> `make check` (lint + type + test) and `make eval` are green on a fresh clone.
+
+```mermaid
+flowchart LR
+    c([client]) --> api["FastAPI<br/>/v1/chat"]
+    api --> route["routing<br/>intent"]
+    route --> loop
+    subgraph loop["agent loop"]
+        direction LR
+        p["plan"] --> a["act"] --> o["observe"]
+    end
+    a -.gated.-> h["defense<br/>harness"]
+    a --> t["tools<br/>web · code · crm"]
+    loop --> mem["memory"]
+    mem --> r([response])
+    api -.-> obs["observability"]
+```
+
+Full diagram + the 8 harness layers: [`docs/architecture.md`](docs/architecture.md).
+Design rationale: [`docs/decisions/`](docs/decisions/) (ADRs).
 
 ```bash
 make install            # editable install + dev deps
@@ -38,7 +59,7 @@ Then run `/init` inside Claude Code to keep `CLAUDE.md` in sync as the code grow
 | 3 tools: `web_search` (canned), `code_search` (ripgrep), `crm` (in-memory) | Real providers / domain systems         |
 | In-memory conversation, semantic cache, long-term      | Redis + pgvector (`redis` extra)                       |
 | `EchoLLM` (deterministic, offline)                     | `AnthropicLLM` (`anthropic` extra + API key)           |
-| Local audit-mode defense harness + `contract.yaml`     | A real runtime-defense backend (keep the same seam)    |
+| Local audit-mode defense harness + `contract.yaml`     | A managed runtime-defense backend (keep the same seam) |
 | Eval runner + keyword judge + golden set               | LLM-as-judge, larger golden set                        |
 
 ---
@@ -70,7 +91,7 @@ Then run `/init` inside Claude Code to keep `CLAUDE.md` in sync as the code grow
 ├── memory/                   # conversation (window), semantic_cache, long_term
 ├── routing/                  # intent classifier + handler registry
 ├── security/                 # Runtime defense harness
-│   ├── adrian_init.py        #   two-line wrap of the agent (8 layers)
+│   ├── harness.py            #   gates every tool call (8-layer model)
 │   └── contract.yaml         #   agent contract: scope, thresholds, control mode
 ├── evaluation/               # golden_dataset, eval_runner, judges/, results/
 ├── observability/            # tracer, feedback, cost_tracker
@@ -100,9 +121,12 @@ reasoning *before* they execute. The 8 layers (configured in `contract.yaml`):
 7. **Choose the control mode** - audit · human-in-the-loop · block.
 8. **Push alerts to channels** - severity-gated Slack/Discord routing.
 
-> The harness in the blueprint is "Adrian" (`adrian-sdk`), a specific third-party
-> product. `security/adrian_init.py` is written as a **provider-agnostic seam** -
-> wire in that SDK, another runtime-defense product, or your own implementation.
+> `security/harness.py` is a **self-contained implementation** of this model
+> (audit-mode default, fail-safe). It's a provider-agnostic seam: keep the
+> interface and delegate to a managed runtime-defense backend, or extend the
+> stubbed layers in place. The 8-layer model is inspired by the "production agent"
+> reference blueprint; this code depends on no third-party SDK. See
+> [ADR-0002](docs/decisions/0002-runtime-defense-harness-as-a-seam.md).
 
 ## Getting started
 

@@ -28,7 +28,7 @@ inside a runtime defense harness (`security/`). The top threats are:
 
 - `security/contract.yaml` - is scope tight? Are forbidden tools/destinations and
   spend limits set? Is `control_mode` appropriate for the environment?
-- `security/adrian_init.py` - does the agent ever run when the harness fails to
+- `security/harness.py` - does the agent ever run when the harness fails to
   init? It must fail safe (audit-only), never fail open with no gating.
 - Tool definitions in `agent/tools/` - are arguments validated? Tool scope limited?
   Is tool output treated as untrusted before it influences the next action?

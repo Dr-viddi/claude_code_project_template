@@ -67,4 +67,4 @@ async def test_code_search_finds_known_symbol():
     results = await tool("class Harness", k=5)
 
     assert isinstance(results, list)
-    assert any("adrian_init.py" in r["file"] for r in results)
+    assert any("harness.py" in r["file"] for r in results)

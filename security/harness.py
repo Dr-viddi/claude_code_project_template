@@ -6,9 +6,11 @@ enforces a control mode (audit / human_in_the_loop / block) read from
 ``contract.yaml``. Audit mode is the default: it logs but never blocks, so the app
 boots with no external backend.
 
-To use a real vendor harness (e.g. the "Adrian" SDK named in the blueprint), keep
-this module's interface and replace the body of ``Harness.gate`` / ``init`` - nothing
-else in the codebase depends on the concrete implementation.
+To use a managed runtime-defense backend instead, keep this module's interface and
+replace the body of ``Harness.gate`` / ``init`` - nothing else in the codebase
+depends on the concrete implementation. (The 8-layer model is inspired by the
+"production agent" reference blueprint; this is an independent, self-contained
+implementation, not a wrapper around any third-party SDK.)
 """
 
 from __future__ import annotations

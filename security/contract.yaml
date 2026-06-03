@@ -1,4 +1,4 @@
-# Agent contract - layer 1 of the runtime defense harness (security/adrian_init.py).
+# Agent contract - layer 1 of the runtime defense harness (security/harness.py).
 # Declarative policy the harness enforces. Reviewed like code. Secrets come from
 # env vars, never inlined here.
 

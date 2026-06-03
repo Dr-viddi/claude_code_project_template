@@ -39,7 +39,7 @@ Uniform error envelope:
 ## Security
 
 - Every route requires authentication except `/healthz` and `/metrics`.
-- The agent runs inside the runtime defense harness (`security/adrian_init.py`):
+- The agent runs inside the runtime defense harness (`security/harness.py`):
   every tool call and reasoning step is gated by the contract in
   `security/contract.yaml` before it executes.
 - PII is scrubbed on egress per the harness `pii` policy; never log raw request

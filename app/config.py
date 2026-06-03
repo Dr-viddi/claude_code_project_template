@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     harness_enabled: bool = True
     control_mode: str = "audit"  # audit | human_in_the_loop | block
     contract_path: str = "security/contract.yaml"
-    adrian_api_key: str = ""
+    harness_api_key: str = ""
 
     # Observability / alerts
     log_level: str = "INFO"

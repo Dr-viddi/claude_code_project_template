@@ -5,9 +5,12 @@ push detail into `.claude/rules/*.md` and reference it from here.
 
 ## Overview
 
-**Name:** `<project-name>`
-**Purpose:** One-paragraph description of what this agent does and who uses it.
-**Status:** alpha / beta / production
+**Name:** `production-agent`
+**Purpose:** A reference implementation of a production-shaped AI agent - intent
+routing, a plan→act→observe tool loop, layered memory, evals, observability, and a
+runtime defense harness - that runs offline out of the box and is wired for
+development with Claude Code. Doubles as a starting point for new agent projects.
+**Status:** beta (runnable reference; swap the stubbed seams for real backends)
 
 ## Tech Stack
 
@@ -41,7 +44,7 @@ client → app/main.py (FastAPI)
 ```
 
 Every tool call and reasoning step passes through the **runtime defense harness**
-(`security/adrian_init.py`, configured by `security/contract.yaml`) before it
+(`security/harness.py`, configured by `security/contract.yaml`) before it
 executes. See `docs/architecture.md` for the full diagram and the 8 layers.
 
 ## Conventions
@@ -51,6 +54,9 @@ Modular rules live in `.claude/rules/`:
 - `code-style.md` - formatting, naming, import order
 - `testing.md` - what to test, fixtures, golden datasets, judges
 - `api-conventions.md` - error envelope, versioning, schema rules
+
+Non-obvious choices are recorded as ADRs in `docs/decisions/`. Read them before
+reworking the agent loop, the harness, or the offline defaults.
 
 ## Workflow Rules
 
