@@ -13,15 +13,18 @@ push detail into `.claude/rules/*.md` and reference it from here.
 
 - **Language:** Python 3.11+
 - **Web framework:** FastAPI
-- **Agent orchestration:** LangGraph (state machine: plan → act → observe)
-- **Runtime defense:** `security/` harness wrapping the agent (8 layers)
-- **Vector store:** `<pgvector | qdrant | weaviate | ...>`
-- **Cache / short-term memory:** Redis
-- **Long-term memory:** episodic + entity store (`<pgvector | dedicated memory db>`)
+- **Agent orchestration:** hand-rolled plan → act → observe loop (`agent/graph.py`);
+  port to LangGraph (`langgraph` extra) when you outgrow it
+- **LLM:** pluggable; `EchoLLM` (offline default) → `AnthropicLLM` (`anthropic` extra)
+- **Runtime defense:** local `security/` harness wrapping the agent (8-layer model);
+  audit-mode by default, swap for a real backend behind the same seam
+- **Vector store / cache / memory:** in-memory by default; Redis + pgvector optional
+  (`redis` extra)
 - **Container runtime:** Docker + docker-compose (`deploy/`)
-- **Tests:** pytest
-- **Lint/format:** ruff + black
-- **Type check:** mypy
+- **Tests:** pytest · **Lint/format:** ruff + black · **Type check:** mypy
+
+> Runs offline out of the box: no API key, no DB, no network. `make check` and
+> `make eval` are green on a fresh clone.
 
 ## Architecture
 

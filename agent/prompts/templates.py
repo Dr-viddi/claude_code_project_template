@@ -1,33 +1,52 @@
-# agent/prompts/templates.py
-#
-# Intention:
-#   Per-intent task templates. The router (`routing/classifier.py`) picks an intent;
-#   the planner renders the matching template here. Keeps the system prompt stable
-#   while the task framing varies by intent (summarize, compare, troubleshoot, ...).
-#
-# What this file should contain:
-#   - A frozen `PromptTemplate` dataclass: `name`, `version`, `intent`, `body`,
-#     plus a `render(**kwargs)` method.
-#   - One constant per intent template.
-#   - A lightweight registry/lookup keyed by `(intent, version)` with a "latest"
-#     fallback - this is the "hot-swappable, per-intent" behavior from the blueprint.
-#
-# Example (commented):
-#
-#   @dataclass(frozen=True)
-#   class PromptTemplate:
-#       name: str
-#       version: str
-#       intent: str
-#       body: str
-#       def render(self, **kwargs: str) -> str:
-#           return self.body.format(**kwargs)
-#
-#   TROUBLESHOOT_V1 = PromptTemplate(
-#       name="troubleshoot",
-#       version="v1",
-#       intent="troubleshoot",
-#       body="The user reports: {problem}\nContext:\n{context}\nDiagnose step by step.",
-#   )
-#
-#   def get(intent: str, version: str = "latest") -> PromptTemplate: ...
+"""Per-intent task templates, selected by routing and rendered by the planner.
+
+Hot-swappable: add a new version, keep the old one for comparison. Look up with
+``get_template(intent, version)``.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class PromptTemplate:
+    name: str
+    version: str
+    intent: str
+    body: str
+
+    def render(self, **kwargs: str) -> str:
+        return self.body.format(**kwargs)
+
+
+QA_V1 = PromptTemplate(
+    name="qa",
+    version="v1",
+    intent="qa",
+    body=(
+        "Answer the question using the context if provided.\n"
+        "Context:\n{context}\n\nQuestion: {question}"
+    ),
+)
+
+TASK_V1 = PromptTemplate(
+    name="task",
+    version="v1",
+    intent="task",
+    body="Complete the task. Use tools when needed.\nTask: {question}",
+)
+
+_REGISTRY: dict[tuple[str, str], PromptTemplate] = {
+    (QA_V1.intent, QA_V1.version): QA_V1,
+    (TASK_V1.intent, TASK_V1.version): TASK_V1,
+}
+
+
+def get_template(intent: str, version: str = "latest") -> PromptTemplate:
+    if version != "latest":
+        return _REGISTRY[(intent, version)]
+    versions = sorted(v for (i, v) in _REGISTRY if i == intent)
+    if not versions:
+        raise KeyError(intent)
+    return _REGISTRY[(intent, versions[-1])]

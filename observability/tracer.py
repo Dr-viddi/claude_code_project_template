@@ -1,18 +1,26 @@
-# observability/tracer.py
-#
-# Intention:
-#   Thin wrapper over whichever tracing backend the project uses (OpenTelemetry,
-#   Langfuse, Arize, Phoenix, ...). Keeps the rest of the code provider-agnostic.
-#
-# What this file should contain:
-#   - A `span(name, **attrs)` context manager that opens / closes a span.
-#   - Each agent node in `agent/nodes.py` should wrap its work in
-#     `with span("act", tool=name): ...`.
-#   - Helpers for attaching standard attributes: `trace_id`, `stage`, `model`,
-#     `prompt_version`, token counts.
-#   - No-op fallback when tracing is disabled so unit tests don't need a backend.
-#
-# Example (commented):
-#
-#   @contextmanager
-#   def span(name: str, **attrs) -> Iterator[None]: ...
+"""Per-stage tracing.
+
+A dependency-free span based on stdlib logging + timing. Swap the body for your
+backend (OpenTelemetry, Langfuse, Phoenix) - callers just use ``with span(...)``.
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+from collections.abc import Iterator
+from contextlib import contextmanager
+from typing import Any
+
+logger = logging.getLogger("trace")
+
+
+@contextmanager
+def span(name: str, **attrs: Any) -> Iterator[dict[str, Any]]:
+    start = time.perf_counter()
+    record: dict[str, Any] = {"span": name, **attrs}
+    try:
+        yield record
+    finally:
+        record["elapsed_ms"] = round((time.perf_counter() - start) * 1000, 2)
+        logger.debug("span %s", record)

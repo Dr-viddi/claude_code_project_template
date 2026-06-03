@@ -1,23 +1,24 @@
-# memory/semantic_cache.py
-#
-# Intention:
-#   Repeat-query cache. Skip the full agent loop when a semantically similar query
-#   has already been answered. Backed by Redis vector search: keys are quantized
-#   embeddings, values are the prior response.
-#
-# What this file should contain:
-#   - A `SemanticCache` class with:
-#       * Constructor taking `redis_url` and a cosine-similarity threshold
-#         (0.95-0.98 is a common starting point).
-#       * `get(query)` -> cached response if a near-neighbor exists, else None.
-#       * `put(query, response)` -> stores embedding + response with TTL.
-#   - Lookup must be O(log n) via the vector index, not a Python loop.
-#   - Fail OPEN: a cache error should never block a request.
-#   - Honor a debug bypass flag (see `CLAUDE.local.md.example`).
-#
-# Example (commented):
-#
-#   class SemanticCache:
-#       def __init__(self, redis_url: str, threshold: float = 0.97): ...
-#       async def get(self, query: str) -> str | None: ...
-#       async def put(self, query: str, response: str) -> None: ...
+"""Repeat-query cache.
+
+The minimal backend keys on a normalized form of the query (exact-ish match). For
+production, replace ``_key`` + ``_store`` with an embedding + Redis vector search so
+*semantically* similar queries hit. Fails open: a cache miss is just ``None``.
+"""
+
+from __future__ import annotations
+
+
+class SemanticCache:
+    def __init__(self, threshold: float = 0.97) -> None:
+        self.threshold = threshold
+        self._store: dict[str, str] = {}
+
+    @staticmethod
+    def _key(query: str) -> str:
+        return " ".join(query.lower().split())
+
+    async def get(self, query: str) -> str | None:
+        return self._store.get(self._key(query))
+
+    async def put(self, query: str, response: str) -> None:
+        self._store[self._key(query)] = response

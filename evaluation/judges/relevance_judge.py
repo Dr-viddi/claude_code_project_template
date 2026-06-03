@@ -1,23 +1,23 @@
-# evaluation/judges/relevance_judge.py
-#
-# Intention:
-#   Example judge. Scores how well an agent answer addresses the user's question.
-#   Use it as the pattern for the other judges (faithfulness, safety, tool_choice).
-#
-# What this file should contain:
-#   - A `RelevanceJudge` class with:
-#       * Constructor taking the judge LLM client (fixed model, temperature 0) or a
-#         programmatic scorer.
-#       * An async `score(question, answer, context=None)` -> a float in [0, 1] plus
-#         a short rationale string.
-#   - A stable output schema (JSON mode) so `eval_runner.py` can aggregate scores.
-#   - No dependency on the agent's own code - judges evaluate from the outside.
-#
-# Example (commented):
-#
-#   class RelevanceJudge:
-#       name = "relevance"
-#       def __init__(self, judge_llm): ...
-#       async def score(self, question: str, answer: str, context: str | None = None) -> dict:
-#           # returns {"score": 0.0..1.0, "rationale": "..."}
-#           ...
+"""Example judge: keyword-coverage relevance score.
+
+Programmatic and deterministic so evals run offline. Use it as the pattern for
+LLM-as-judge variants (fixed model, temperature 0) - keep the same return shape:
+``{"score": float in [0,1], "rationale": str}``.
+"""
+
+from __future__ import annotations
+
+
+class RelevanceJudge:
+    name = "relevance"
+
+    def score(self, answer: str, expected_keywords: list[str]) -> dict[str, object]:
+        if not expected_keywords:
+            return {"score": 1.0, "rationale": "no expected keywords"}
+        hay = answer.lower()
+        hits = [kw for kw in expected_keywords if kw.lower() in hay]
+        score = len(hits) / len(expected_keywords)
+        return {
+            "score": round(score, 3),
+            "rationale": f"matched {len(hits)}/{len(expected_keywords)}: {hits}",
+        }

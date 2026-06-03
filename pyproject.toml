@@ -1,77 +1,78 @@
-# pyproject.toml
-#
-# Intention:
-#   Single source of truth for Python packaging, dependencies, and tool config
-#   (ruff, black, mypy, pytest). Locking and reproducibility belong here.
-#
-# What this file should declare:
-#   - [build-system]                  - setuptools or hatch / pdm / uv.
-#   - [project]                       - name, version, description, requires-python,
-#                                       license, readme, runtime dependencies. For an
-#                                       agent app this typically includes fastapi,
-#                                       uvicorn, pydantic(-settings), httpx, redis,
-#                                       a graph lib (langgraph/langchain), pyyaml
-#                                       (to read security/contract.yaml), and your
-#                                       runtime-defense SDK.
-#   - [project.optional-dependencies] - dev tooling (pytest, pytest-asyncio, ruff,
-#                                       black, mypy).
-#   - [tool.setuptools.packages.find] - include the top-level packages:
-#                                       app, agent, memory, routing, security,
-#                                       evaluation, observability.
-#   - [tool.ruff] / [tool.ruff.lint]  - line length 100, rule sets matching
-#                                       `.claude/rules/code-style.md`.
-#   - [tool.black]                    - line length 100.
-#   - [tool.mypy]                     - strict = true.
-#   - [tool.pytest.ini_options]       - asyncio_mode, testpaths.
-#
-# Example (commented; remove the leading '#' to activate):
-#
-# [build-system]
-# requires = ["setuptools>=68", "wheel"]
-# build-backend = "setuptools.build_meta"
-#
-# [project]
-# name = "<project-name>"
-# version = "0.1.0"
-# description = "<one-liner>"
-# requires-python = ">=3.11"
-# readme = "README.md"
-# license = {text = "MIT"}
-# dependencies = [
-#     "fastapi>=0.110",
-#     "uvicorn[standard]>=0.29",
-#     "pydantic>=2.6",
-#     "pydantic-settings>=2.2",
-#     "httpx>=0.27",
-#     "redis>=5.0",
-#     "langgraph>=0.2",
-#     "pyyaml>=6.0",
-#     # "adrian-sdk>=0.1",   # runtime defense harness (or your provider)
-# ]
-#
-# [project.optional-dependencies]
-# dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4", "black>=24.0", "mypy>=1.10"]
-#
-# [tool.setuptools.packages.find]
-# include = ["app*", "agent*", "memory*", "routing*", "security*", "evaluation*", "observability*"]
-#
-# [tool.ruff]
-# line-length = 100
-# target-version = "py311"
-#
-# [tool.ruff.lint]
-# select = ["E", "F", "I", "N", "B", "UP", "S", "SIM"]
-# ignore = ["S101"]  # assert is fine in tests
-#
-# [tool.black]
-# line-length = 100
-# target-version = ["py311"]
-#
-# [tool.mypy]
-# python_version = "3.11"
-# strict = true
-# ignore_missing_imports = true
-#
-# [tool.pytest.ini_options]
-# asyncio_mode = "auto"
-# testpaths = ["tests"]
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "claude-code-project-template"
+version = "0.1.0"
+description = "Runnable starter template for production AI agents, wired for Claude Code."
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
+
+# Base runtime deps are deliberately light so the template runs offline with
+# zero external services and no API key (see agent/llm.py EchoLLM). The heavier
+# integrations are optional extras below.
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "black>=24.0",
+    "mypy>=1.10",
+    "types-PyYAML",
+]
+# Production integrations - install what you actually use:
+#   redis    : real conversation window + semantic cache backend
+#   anthropic: real LLM client (swap EchoLLM for AnthropicLLM in agent/llm.py)
+#   langgraph: production agent state machine (the hand-rolled Agent is a stand-in)
+redis = ["redis>=5.0"]
+anthropic = ["anthropic>=0.39"]
+langgraph = ["langgraph>=0.2"]
+
+[project.scripts]
+# `python -m app` style entry is via uvicorn; this is a convenience CLI for evals.
+agent-eval = "evaluation.eval_runner:main"
+
+[tool.setuptools.packages.find]
+include = ["app*", "agent*", "memory*", "routing*", "security*", "evaluation*", "observability*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "B", "UP", "S", "SIM"]
+# S101: asserts are fine in tests. S104: binding 0.0.0.0 is intentional in containers.
+ignore = ["S104"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+# HarnessBlocked / ReviewRequired are control-flow signals, not errors - the
+# *Error suffix (N818) would misrepresent them.
+"security/adrian_init.py" = ["N818"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+# Pragmatic strictness for a template: catch real bugs without ceremony.
+warn_unused_ignores = true
+warn_redundant_casts = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

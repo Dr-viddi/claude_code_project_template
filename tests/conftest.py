@@ -1,29 +1,28 @@
-# tests/conftest.py
-#
-# Intention:
-#   Shared pytest fixtures. Scoped narrowly per `.claude/rules/testing.md` -
-#   prefer function-scoped fixtures unless setup is genuinely expensive.
-#
-# What this file should contain:
-#   - `fake_llm`        - deterministic stub of the LLM client. Mock at the boundary,
-#                         never your own nodes/services.
-#   - `fake_redis`      - in-memory Redis (e.g. `fakeredis`) for memory tests
-#                         (conversation window, semantic cache).
-#   - `fake_deps`       - a bundle of stubbed dependencies for building the agent
-#                         graph in `test_agent.py` (llm, tools, memory, router).
-#   - `harness_disabled`- forces the security harness into audit-only/no-op mode so
-#                         tests never touch the vendor backend.
-#   - HTTP fixture via `respx` / `vcr.py` for recorded responses - no live network.
-#
-# Example (commented):
-#
-#   @pytest.fixture
-#   def fake_llm():
-#       class _FakeLLM:
-#           async def complete(self, prompt: str) -> str:
-#               return f"stub response for: {prompt[:40]}"
-#       return _FakeLLM()
-#
-#   @pytest.fixture
-#   def harness_disabled(monkeypatch):
-#       monkeypatch.setenv("ADRIAN_ENABLED", "0")
+"""Shared pytest fixtures. Everything runs offline: EchoLLM, in-memory stores,
+audit-mode harness. No network, no API key, no external services."""
+
+from __future__ import annotations
+
+import pytest
+from fastapi.testclient import TestClient
+
+from agent.graph import Agent
+from app.config import Settings
+from app.main import app
+
+
+@pytest.fixture
+def settings() -> Settings:
+    return Settings(llm_provider="echo", harness_enabled=True, control_mode="audit")
+
+
+@pytest.fixture
+def agent(settings: Settings) -> Agent:
+    return Agent.build(settings)
+
+
+@pytest.fixture
+def client() -> TestClient:
+    # TestClient runs the lifespan, so app.state.agent is built.
+    with TestClient(app) as c:
+        yield c

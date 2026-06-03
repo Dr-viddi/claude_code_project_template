@@ -1,52 +1,40 @@
-# deploy/docker-compose.yml
+# Local development stack. From the repo root:
+#   docker compose -f deploy/docker-compose.yml up --build
 #
-# Intention:
-#   Local DEVELOPMENT stack. Brings up the API plus stateful dependencies (database
-#   with vector extension, cache) with one `docker compose -f deploy/docker-compose.yml up`.
-#   Optimized for fast iteration, not production hardening (see docker-compose.prod.yml).
-#
-# What this file should declare:
-#   - `app`     - built from `app/Dockerfile`, env_file `.env`, exposes 8000,
-#                 source mounted for hot reload in dev.
-#   - `db`      - Postgres + pgvector (or your vector store) with a healthcheck so
-#                 `app` waits for readiness.
-#   - `cache`   - Redis for the semantic cache + conversation memory.
-#   - Named volumes so data survives restarts.
-#   - (Optional) the `frontend/` service if you keep the UI.
-#
-# Build context note: use `context: ..` (repo root) so the Dockerfiles can copy
-# app/, agent/, memory/, routing/, security/, observability/.
-#
-# Example (commented; remove the leading '#' to activate):
-#
-# services:
-#   app:
-#     build:
-#       context: ..
-#       dockerfile: app/Dockerfile
-#     env_file: ../.env
-#     ports: ["8000:8000"]
-#     depends_on:
-#       db:    { condition: service_healthy }
-#       cache: { condition: service_started }
-#
-#   db:
-#     image: pgvector/pgvector:pg16
-#     environment:
-#       POSTGRES_USER: app
-#       POSTGRES_PASSWORD: app
-#       POSTGRES_DB: app
-#     ports: ["5432:5432"]
-#     volumes: [ "dbdata:/var/lib/postgresql/data" ]
-#     healthcheck:
-#       test: ["CMD-SHELL", "pg_isready -U app"]
-#       interval: 5s
-#       timeout: 3s
-#       retries: 10
-#
-#   cache:
-#     image: redis:7-alpine
-#     ports: ["6379:6379"]
-#
+# The API runs offline by default (EchoLLM, in-memory stores, audit-mode harness),
+# so db/cache are optional - uncomment them and set DATABASE_URL / REDIS_URL in .env
+# when you wire real backends.
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: app/Dockerfile
+    env_file:
+      - path: ../.env
+        required: false
+    ports:
+      - "8000:8000"
+    # depends_on:
+    #   db: { condition: service_healthy }
+    #   cache: { condition: service_started }
+
+  # cache:
+  #   image: redis:7-alpine
+  #   ports: ["6379:6379"]
+
+  # db:
+  #   image: pgvector/pgvector:pg16
+  #   environment:
+  #     POSTGRES_USER: app
+  #     POSTGRES_PASSWORD: app
+  #     POSTGRES_DB: app
+  #   ports: ["5432:5432"]
+  #   volumes: ["dbdata:/var/lib/postgresql/data"]
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U app"]
+  #     interval: 5s
+  #     timeout: 3s
+  #     retries: 10
+
 # volumes:
 #   dbdata:

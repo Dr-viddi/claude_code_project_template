@@ -1,20 +1,7 @@
-# data/index_config/embedding.yaml
-#
-# Intention:
-#   Declares how raw documents are chunked and embedded by `scripts/seed.py`.
-#   Kept in version control so re-indexing is reproducible across environments.
-#
-# What this file should contain:
-#   - `model`                : embedding model identifier
-#   - `dimensions`            : vector size produced by the model
-#   - `chunk_size_tokens`     : target chunk size (typical 256-1024)
-#   - `chunk_overlap_tokens`  : overlap between adjacent chunks (typical 10-15% of chunk size)
-#   - Optional: `splitter` (recursive, by-heading, by-sentence), `metadata_fields`.
-#
-# Example (commented; remove the leading '#' to activate):
-#
-# model: text-embedding-3-large
-# dimensions: 3072
-# chunk_size_tokens: 512
-# chunk_overlap_tokens: 64
-# splitter: recursive
+# Chunking + embedding config for scripts/seed.py. Versioned so re-indexing is
+# reproducible. Used only when you wire a real vector store (VECTOR_BACKEND != memory).
+model: text-embedding-3-large
+dimensions: 3072
+chunk_size_tokens: 512
+chunk_overlap_tokens: 64
+splitter: recursive

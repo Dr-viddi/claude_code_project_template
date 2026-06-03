@@ -9,12 +9,37 @@ as the primary AI pair-programmer. It combines two best-practice blueprints:
   nodes, tools, prompts), memory, routing, an 8-layer runtime defense harness,
   evaluation with judges, observability, and deploy configs.
 
-> **This is not a runnable project.** Every source file is a comment-only stub
-> that describes its *intent*, *what it should contain*, and a commented example.
-> Copy this repo, rename it, then fill in the stubs to start building.
+> **It runs out of the box.** The template ships a minimal but working vertical
+> slice: `make install && make serve` starts a real FastAPI agent that classifies
+> intent, calls a tool, gates the call through the defense harness, and answers -
+> with **no API key, no database, and no internet** (a deterministic `EchoLLM`,
+> in-memory stores, and an audit-mode harness). `make check` (lint + type + test)
+> and `make eval` are green. Swap the stubbed pieces for real ones as you build.
 
-Clone it, rename it, run `/init` inside Claude Code to refresh `CLAUDE.md`
-against your actual code, and replace the stub comments with real implementations.
+```bash
+make install            # editable install + dev deps
+make serve              # uvicorn on :8000  (offline, no secrets needed)
+curl -s localhost:8000/healthz
+curl -s localhost:8000/v1/chat -H 'content-type: application/json' \
+  -d '{"messages":[{"role":"user","content":"search for the latest agent news"}]}'
+make check              # ruff + mypy + pytest   (28 tests)
+make eval               # replay evaluation/golden_dataset.json
+```
+
+Then run `/init` inside Claude Code to keep `CLAUDE.md` in sync as the code grows.
+
+### What's real vs. what to replace
+
+| Real & runnable now                                    | Stubbed - swap for production                          |
+| ------------------------------------------------------ | ------------------------------------------------------ |
+| FastAPI app, routes, error envelope                    | -                                                      |
+| Agent loop (plan→act→observe), bounded                 | Port to LangGraph (`langgraph` extra) when you outgrow it |
+| Heuristic intent classifier + handler registry         | LLM/model classifier                                   |
+| 3 tools: `web_search` (canned), `code_search` (ripgrep), `crm` (in-memory) | Real providers / domain systems         |
+| In-memory conversation, semantic cache, long-term      | Redis + pgvector (`redis` extra)                       |
+| `EchoLLM` (deterministic, offline)                     | `AnthropicLLM` (`anthropic` extra + API key)           |
+| Local audit-mode defense harness + `contract.yaml`     | A real runtime-defense backend (keep the same seam)    |
+| Eval runner + keyword judge + golden set               | LLM-as-judge, larger golden set                        |
 
 ---
 
@@ -86,22 +111,29 @@ reasoning *before* they execute. The 8 layers (configured in `contract.yaml`):
 git clone <your-new-repo>
 cd <your-new-repo>
 
-# 2. Copy local override stubs
+# 2. Copy local config stubs
+cp .env.example .env
 cp CLAUDE.local.md.example CLAUDE.local.md
 cp .claude/settings.local.json.example .claude/settings.local.json
 
-# 3. Open in Claude Code
+# 3. Install and verify it runs
+make install
+make check        # lint + type + test (all green)
+make serve        # http://localhost:8000
+
+# 4. Open in Claude Code
 claude
 ```
 
-Inside the Claude Code session:
+Then:
 
 - Edit `CLAUDE.md` to describe your project (name, purpose, stack).
-- Walk each stub file. Each explains its intended role and includes a commented
-  example. Replace the comments with real code as you implement.
-- Run `/init` once you have meaningful code so Claude can regenerate `CLAUDE.md`
-  from the live tree.
+- Replace stubbed pieces with real ones (see the table above) - the EchoLLM, the
+  canned `web_search`, the in-memory stores, and the local harness are seams.
+- Run `/init` so Claude keeps `CLAUDE.md` in sync with the live tree.
 - Use `/review` and `/fix-issue` (in `.claude/commands/`) for repeatable workflows.
+- `pre-commit install` to run the lint/format gate on every commit; CI runs the
+  same gate (`.github/workflows/ci.yml`).
 
 ## Conventions
 

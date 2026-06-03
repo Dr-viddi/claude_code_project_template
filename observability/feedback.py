@@ -1,19 +1,18 @@
-# observability/feedback.py
-#
-# Intention:
-#   Capture explicit user feedback (thumbs up/down, free-text comment) and
-#   correlate it with the trace_id of the response that triggered it. Drives
-#   the offline eval rubric over time.
-#
-# What this file should contain:
-#   - An async `record(trace_id, rating, note=None)` function.
-#   - Storage backend pluggable - Postgres for relational queries, a warehouse
-#     sink for analytics, or both.
-#
-# Example (commented):
-#
-#   async def record(
-#       trace_id: str,
-#       rating: Literal["up", "down"],
-#       note: str | None = None,
-#   ) -> None: ...
+"""User feedback capture, correlated to a trace_id.
+
+In-memory list by default; point ``_SINK`` at Postgres / a warehouse for production.
+"""
+
+from __future__ import annotations
+
+from typing import Literal
+
+_SINK: list[dict[str, str | None]] = []
+
+
+async def record(trace_id: str, rating: Literal["up", "down"], note: str | None = None) -> None:
+    _SINK.append({"trace_id": trace_id, "rating": rating, "note": note})
+
+
+def all_feedback() -> list[dict[str, str | None]]:
+    return list(_SINK)

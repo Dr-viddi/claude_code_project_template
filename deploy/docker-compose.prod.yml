@@ -1,44 +1,33 @@
-# deploy/docker-compose.prod.yml
+# Production overlay. Layered on top of docker-compose.yml:
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml up -d
 #
-# Intention:
-#   PRODUCTION overlay. Layered on top of docker-compose.yml to add the hardening
-#   the dev stack omits: GPU access (if the agent runs local models), health checks,
-#   non-root containers, resource limits, restart policies, and no source mounts.
-#
-#   Usage:
-#     docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml up -d
-#
-# What this file should declare (overrides only - it does not repeat the base):
-#   - `app`:
-#       * `read_only: true` root filesystem + tmpfs for scratch.
-#       * `user: "10001:10001"` (non-root) and `cap_drop: [ALL]`.
-#       * `deploy.resources.limits` for cpu/memory.
-#       * `restart: unless-stopped`.
-#       * `healthcheck` hitting `/healthz` (and `/readyz`).
-#       * GPU reservation if needed:
-#           deploy.resources.reservations.devices:
-#             - capabilities: ["gpu"]
-#       * No bind-mounted source; pull a pinned image tag instead of building.
-#   - `db` / `cache`: production images, persistent managed volumes, backups.
-#   - Secrets via your orchestrator's secret store, not env files.
-#
-# Example (commented; remove the leading '#' to activate):
-#
-# services:
-#   app:
-#     image: ${REGISTRY}/${PROJECT}:${VERSION}
-#     read_only: true
-#     user: "10001:10001"
-#     cap_drop: ["ALL"]
-#     restart: unless-stopped
-#     healthcheck:
-#       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else 1)"]
-#       interval: 10s
-#       timeout: 3s
-#       retries: 5
-#     deploy:
-#       resources:
-#         limits: { cpus: "2.0", memory: 2g }
-#         # reservations:
-#         #   devices:
-#         #     - capabilities: ["gpu"]
+# Adds the hardening the dev stack omits. Pull a pinned image instead of building,
+# run read-only + non-root, set resource limits, and add a health check.
+services:
+  app:
+    image: ${REGISTRY:-localhost}/${PROJECT:-agent}:${VERSION:-latest}
+    build: !reset null
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else 1)"
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+        # Uncomment to reserve a GPU for local model inference:
+        # reservations:
+        #   devices:
+        #     - capabilities: ["gpu"]
