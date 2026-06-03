@@ -1,37 +1,58 @@
-# Agent contract - layer 1 of the runtime defense harness (security/harness.py).
-# Declarative policy the harness enforces. Reviewed like code. Secrets come from
-# env vars, never inlined here.
-
-version: 1
-agent: production-agent
-
-# control_mode: how verdicts are enforced.
-#   audit            - observe + log only (default; safe to boot anywhere)
-#   human_in_the_loop- pause risky actions for approval (raises ReviewRequired)
-#   block            - reject risky actions outright (raises HarnessBlocked)
-control_mode: audit
-
-scope:
-  allowed_tools: [crm, web_search, code_search]
-  allowed_domains: ["example.com"]
-  data_classes: [public, internal]
-
-boundaries:
-  forbidden_tools: [shell, filesystem_write]
-  blocked_destinations: ["*.unknown-host.com"]
-  max_usd_per_session: 2.00
-
-pii:
-  client_side_regex: [email, phone, national_id]
-  server_side_llm_sweep: true
-
-severity_tiers:
-  bands: [low, medium, high, critical]
-  action_threshold: high   # act on verdicts at this tier or above
-
-alerts:
-  min_severity: high
-  channels:
-    slack: "${SLACK_WEBHOOK_URL}"
-    discord: "${DISCORD_WEBHOOK_URL}"
-  payload: [verdict, reasoning, action]
+# security/contract.yaml
+#
+# Purpose
+#   The agent contract - layer 1 of the runtime defense harness (harness.py).
+#   Declarative policy that the harness enforces: scope, boundaries, severity
+#   thresholds, control mode, and alert routing.
+#
+# When you want a file like this
+#   Anywhere you have a harness. Checking the policy into git makes it
+#   reviewable like code, which is the whole point.
+#
+# Why it matters
+#   - Code-reviewed guardrails: changes to what the agent may do go through PR.
+#   - Per-environment override: ship `audit` in dev, `block` in prod with the
+#     same code path.
+#   - Secrets stay in env (`${VAR}` interpolation); the contract itself is
+#     safe to commit.
+#
+# What goes in it
+#   - version + agent name (so a multi-agent codebase can keep contracts apart).
+#   - scope.allowed_tools, scope.allowed_domains, scope.data_classes.
+#   - boundaries.forbidden_tools, boundaries.blocked_destinations, spend caps.
+#   - pii: which classes to scrub; whether to run a server-side LLM sweep.
+#   - severity_tiers: bands + the per-agent action_threshold.
+#   - control_mode: audit | human_in_the_loop | block.
+#   - alerts: min severity, channels, payload fields.
+#
+# Example (commented; remove the leading '#' and edit for your project)
+#
+# version: 1
+# agent: production-agent
+#
+# control_mode: audit          # audit | human_in_the_loop | block
+#
+# scope:
+#   allowed_tools: [crm, web_search, code_search]
+#   allowed_domains: ["api.internal.example.com"]
+#   data_classes: [public, internal]
+#
+# boundaries:
+#   forbidden_tools: [shell, filesystem_write]
+#   blocked_destinations: ["*.unknown-host.com"]
+#   max_usd_per_session: 2.00
+#
+# pii:
+#   client_side_regex: [email, phone, national_id]
+#   server_side_llm_sweep: true
+#
+# severity_tiers:
+#   bands: [low, medium, high, critical]
+#   action_threshold: high
+#
+# alerts:
+#   min_severity: high
+#   channels:
+#     slack: "${SLACK_WEBHOOK_URL}"
+#     discord: "${DISCORD_WEBHOOK_URL}"
+#   payload: [verdict, reasoning, action]

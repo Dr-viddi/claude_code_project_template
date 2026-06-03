@@ -1,12 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
 
-  "_intention": "Per-machine Claude Code overrides. Copy to settings.local.json (gitignored). Merged on top of settings.json - your local additions don't affect teammates.",
+  "_purpose": "Per-machine Claude Code overrides. Copy to settings.local.json (gitignored). Merged on top of settings.json - your local additions don't affect teammates.",
 
-  "_what_this_should_contain": [
-    "Personal permission additions (e.g. tools you trust on your own machine).",
+  "_when_you_want_a_file_like_this": "Whenever you need personal tweaks (extra permissions for tools you trust on your own machine, verbose logging, local data paths) without inflicting them on others.",
+
+  "_why_it_matters": [
+    "Keeps the team's shared settings clean and reviewable.",
+    "You can grant yourself broader permissions without weakening defaults for everyone else."
+  ],
+
+  "_what_goes_in_it": [
+    "Personal permission additions.",
     "Developer-specific env vars (verbose logging, local data paths).",
-    "Hooks you want to layer on top of the team's default set."
+    "Hooks layered on top of the team's default set."
   ],
 
   "_example": {

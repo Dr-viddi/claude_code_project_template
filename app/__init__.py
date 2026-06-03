@@ -1,3 +1,5 @@
-# Marker file that makes `app` a Python package.
-# No code should live here. Public API of the package is exposed by individual
-# submodules (`app.main`, `app.config`, ...), not re-exported from `__init__`.
+# Package marker for `app`.
+#
+# The HTTP-boundary layer: route handlers, request/response schemas, lifecycle.
+# Public API of the package is exposed by individual submodules (`app.main`,
+# `app.config`, `app.models`) - nothing re-exported from this __init__.

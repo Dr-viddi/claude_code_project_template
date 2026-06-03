@@ -1,22 +1,44 @@
+# .pre-commit-config.yaml
+#
+# Purpose
+#   Pre-commit hooks that run the lint/format gate locally on every commit, so
+#   bad code never reaches CI. Same checks CI runs - convergence by design.
+#
+# When you want a file like this
+#   The day after the first "CI failed on formatting" PR. Pre-commit catches
+#   it before the push, saving a round-trip.
+#
+# Why it matters
+#   - Local fast feedback (sub-second) beats waiting for CI.
+#   - One install (`pre-commit install`) bootstraps the same hygiene for every
+#     contributor; no per-developer setup drift.
+#
+# What goes in it
+#   - ruff (with --fix) + ruff-format or black.
+#   - end-of-file-fixer, trailing-whitespace, check-yaml, check-added-large-files.
+#   - Match versions to what CI uses.
+#
 # Install: pip install pre-commit && pre-commit install
-# Runs the same lint/format gate locally on every commit.
-repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
-
-  - repo: https://github.com/psf/black
-    rev: 24.8.0
-    hooks:
-      - id: black
-
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-      - id: end-of-file-fixer
-      - id: trailing-whitespace
-      - id: check-yaml
-      - id: check-added-large-files
+#
+# Example (commented; uncomment + edit)
+#
+# repos:
+#   - repo: https://github.com/astral-sh/ruff-pre-commit
+#     rev: v0.6.9
+#     hooks:
+#       - id: ruff
+#         args: [--fix]
+#       - id: ruff-format
+#
+#   - repo: https://github.com/psf/black
+#     rev: 24.8.0
+#     hooks:
+#       - id: black
+#
+#   - repo: https://github.com/pre-commit/pre-commit-hooks
+#     rev: v4.6.0
+#     hooks:
+#       - id: end-of-file-fixer
+#       - id: trailing-whitespace
+#       - id: check-yaml
+#       - id: check-added-large-files

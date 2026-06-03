@@ -1,2 +1,23 @@
-streamlit>=1.32
-httpx>=0.27
+# frontend/requirements.txt
+#
+# Purpose
+#   Pinned dependencies for the frontend image. Kept separate from the API's
+#   pyproject.toml so the two containers stay independent.
+#
+# When you want a file like this
+#   Any project with a frontend that has its own deps. Keeping them out of the
+#   API's pyproject keeps the API image lean.
+#
+# Why it matters
+#   - The frontend can deploy without rebuilding the API and vice versa.
+#   - Pinned versions = reproducible builds; CI fails the same way locally.
+#
+# What goes in it
+#   - One package per line, ideally version-pinned (`pkg==X.Y.Z` for prod,
+#     `pkg>=X.Y` while iterating).
+#   - Only what the UI needs - never API-side libraries.
+#
+# Example (commented; uncomment for a Streamlit UI)
+#
+# streamlit>=1.32
+# httpx>=0.27

@@ -1,49 +1,57 @@
 # Project Brain
 
-This file is auto-loaded at the start of every Claude Code session. Keep it lean -
+This file is auto-loaded at the start of every Claude Code session. Keep it lean —
 push detail into `.claude/rules/*.md` and reference it from here.
 
 ## Overview
 
-**Name:** `production-agent`
-**Purpose:** A reference implementation of a production-shaped AI agent - intent
-routing, a plan→act→observe tool loop, layered memory, evals, observability, and a
-runtime defense harness - that runs offline out of the box and is wired for
-development with Claude Code. Doubles as a starting point for new agent projects.
-**Status:** beta (runnable reference; swap the stubbed seams for real backends)
+**Name:** `production-agent-blueprint`
+**Purpose:** A reference / anatomy of a production-shaped AI agent project. Not a
+runnable app — every file documents *purpose*, *when you want it*, *why it matters*,
+and a small commented example. Use as a lookup when starting new AI/agent projects.
+**Status:** reference (no runnable code by design)
 
-## Tech Stack
+## Why this exists
+
+Two failure modes a portfolio template usually hits:
+- *Too generic* — has the shape of a production agent but no real tradeoffs visible.
+- *Too specific* — opinionated on one agent shape; useless for a different problem.
+
+This repo picks neither: it's explicitly a **menu**. Real projects (built on top of
+the shape this repo describes) carry the judgment a reviewer wants to see.
+
+## Tech stack (the typical, when you build on this shape)
 
 - **Language:** Python 3.11+
 - **Web framework:** FastAPI
-- **Agent orchestration:** hand-rolled plan → act → observe loop (`agent/graph.py`);
-  port to LangGraph (`langgraph` extra) when you outgrow it
-- **LLM:** pluggable; `EchoLLM` (offline default) → `AnthropicLLM` (`anthropic` extra)
-- **Runtime defense:** local `security/` harness wrapping the agent (8-layer model);
-  audit-mode by default, swap for a real backend behind the same seam
-- **Vector store / cache / memory:** in-memory by default; Redis + pgvector optional
-  (`redis` extra)
-- **Container runtime:** Docker + docker-compose (`deploy/`)
-- **Tests:** pytest · **Lint/format:** ruff + black · **Type check:** mypy
+- **Agent orchestration:** LangGraph (state machine: plan → act → observe) or a
+  small hand-rolled equivalent until you outgrow it.
+- **LLM:** pluggable behind a small Protocol (`agent/llm.py`) — Anthropic / OpenAI /
+  local.
+- **Runtime defense:** a harness wrapping the agent (8-layer model, see
+  `security/contract.yaml`). Local stub or a managed backend behind the same seam.
+- **Vector store / cache / memory:** pgvector or qdrant + Redis are common picks.
+- **Container runtime:** Docker + docker-compose (`deploy/`).
+- **Tests:** pytest. **Lint/format:** ruff + black. **Type check:** mypy.
 
-> Runs offline out of the box: no API key, no DB, no network. `make check` and
-> `make eval` are green on a fresh clone.
+These are not requirements of *this* repo — they're the typical choices documented
+on each file so you don't have to re-derive them.
 
 ## Architecture
 
 ```
 client → app/main.py (FastAPI)
            → routing/ (classify intent → resolve handler)
-           → agent/graph.py (LangGraph: plan → act → observe loop)
+           → agent/graph.py (plan → act → observe loop)
                 → agent/nodes.py        (plan, act, observe, grade)
-                → agent/tools/          (crm, web_search, code_search)
+                → agent/tools/          (one file per tool)
                 → agent/prompts/        (system + per-intent templates)
            → memory/ (conversation window · semantic cache · long-term store)
            → security/ (runtime defense harness gates every tool call)
            → observability/ (tracer · cost_tracker · feedback)
 ```
 
-Every tool call and reasoning step passes through the **runtime defense harness**
+Every tool call passes through the **runtime defense harness**
 (`security/harness.py`, configured by `security/contract.yaml`) before it
 executes. See `docs/architecture.md` for the full diagram and the 8 layers.
 
@@ -51,41 +59,28 @@ executes. See `docs/architecture.md` for the full diagram and the 8 layers.
 
 Modular rules live in `.claude/rules/`:
 
-- `code-style.md` - formatting, naming, import order
-- `testing.md` - what to test, fixtures, golden datasets, judges
-- `api-conventions.md` - error envelope, versioning, schema rules
+- `code-style.md` — formatting, naming, import order
+- `testing.md` — what to test, fixtures, golden datasets, judges
+- `api-conventions.md` — error envelope, versioning, schema rules
 
 Non-obvious choices are recorded as ADRs in `docs/decisions/`. Read them before
 reworking the agent loop, the harness, or the offline defaults.
 
-## Workflow Rules
+## Workflow rules (carried into real projects)
 
 1. **Never commit `CLAUDE.local.md`, `.env`, or `.claude/settings.local.json`.**
 2. **Always run `make check` before pushing** (lint + type + test).
 3. **Add a regression test** for every bug fix.
 4. **Update `evaluation/golden_dataset.json`** when prompts, tools, or routing change.
-5. **Guard the guardrails.** Any change to `security/` (harness or `contract.yaml`)
-   or `agent/tools/` must run `/review` (code-reviewer) and `/security-review`
-   (security-auditor) before merge.
-
-## Common Commands
-
-```bash
-make install      # editable install + dev deps
-make run          # docker compose up (deploy/docker-compose.yml)
-make test         # pytest
-make eval         # offline eval against golden dataset (evaluation/eval_runner.py)
-make check        # lint + type + test
-```
+5. **Guard the guardrails.** Any change to `security/` or `agent/tools/` runs
+   `/review` and `/security-review` before merge.
 
 ## Hierarchy
 
-This is the root `CLAUDE.md`. Subdirectories may add their own `CLAUDE.md` for
-locality - e.g. `agent/CLAUDE.md` for agent-specific conventions, or
-`security/CLAUDE.md` for the contract policy. Child files load on demand, not at
-session start.
+This is the root `CLAUDE.md`. Subdirectories may add their own (e.g.
+`agent/CLAUDE.md`, `security/CLAUDE.md`) — child files load on demand.
 
-## Personal Overrides
+## Personal overrides
 
-Per-developer settings (local paths, debug shortcuts, private prefs) go in
-`CLAUDE.local.md`, which is gitignored. Copy `CLAUDE.local.md.example` to start.
+Per-developer settings live in `CLAUDE.local.md` (gitignored). Copy
+`CLAUDE.local.md.example` to start.

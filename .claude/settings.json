@@ -1,12 +1,20 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
 
-  "_intention": "Team-shared Claude Code settings. Committed to git so every developer gets the same permission allowlist, env vars, and hooks. Per-machine tweaks belong in settings.local.json (gitignored).",
+  "_purpose": "Team-shared Claude Code settings. Committed to git so every developer gets the same permission allowlist, env vars, and hooks. Per-machine tweaks go in settings.local.json (gitignored).",
 
-  "_what_this_should_contain": [
+  "_when_you_want_a_file_like_this": "Any project using Claude Code with more than one developer. Even solo, committed permissions and hooks document what Claude is allowed to do in this repo.",
+
+  "_why_it_matters": [
+    "Allowlist + denylist drastically cuts permission prompts during sessions without lowering safety.",
+    "Hooks are deterministic - they enforce things the LLM 'rules' would otherwise have to remember.",
+    "Env vars set here apply to every Claude Code session in this repo - no per-developer setup."
+  ],
+
+  "_what_goes_in_it": [
     "permissions.allow - tools and bash patterns auto-approved without a prompt.",
     "permissions.deny  - tools and bash patterns rejected outright (deny wins).",
-    "env               - environment variables exposed to every Claude Code session in this repo.",
+    "env               - environment variables for every Claude Code session in this repo.",
     "hooks.PreToolUse  - scripts that gate tool calls before they run (e.g. validate-bash.sh).",
     "hooks.PostToolUse - scripts that run after a tool call (e.g. format-python.sh)."
   ],

@@ -1,26 +1,30 @@
-"""Short-term per-session memory: a sliding window of recent turns.
-
-Default backend is an in-process dict so the template runs with no Redis. For
-production, back ``_store`` with Redis (lists + TTL) - the interface stays the same.
-"""
-
-from __future__ import annotations
-
-from collections import defaultdict
-
-from app.models import Message
-
-
-class ConversationStore:
-    def __init__(self, max_turns: int = 20) -> None:
-        self._max_turns = max_turns
-        self._store: dict[str, list[Message]] = defaultdict(list)
-
-    async def load(self, session_id: str) -> list[Message]:
-        return list(self._store[session_id])
-
-    async def append(self, session_id: str, message: Message) -> None:
-        window = self._store[session_id]
-        window.append(message)
-        if len(window) > self._max_turns:
-            del window[: len(window) - self._max_turns]
+# memory/conversation.py
+#
+# Purpose
+#   Short-term, per-session memory. Holds a sliding window of recent turns so the
+#   agent has the immediate context for follow-ups and pronoun references.
+#
+# When you want a file like this
+#   Any agent with multi-turn conversations. Single-shot APIs can skip this.
+#
+# Why it matters
+#   - Without a bounded window, prompt size grows unboundedly and costs spike.
+#   - Redis with TTL gives "remembers within a session, forgets after a day"
+#     almost for free.
+#   - When the window overflows, summarize the oldest turns and hand the summary
+#     to long_term.py - that's the standard short→long memory hand-off.
+#
+# What goes in it
+#   - A `ConversationStore` class with:
+#       * Constructor taking the backend handle (Redis client / in-memory dict)
+#         and `max_turns` (window size).
+#       * `load(session_id)` -> ordered list of recent messages.
+#       * `append(session_id, message)` -> push and trim to the window.
+#   - Optional: a `summarize_overflow` callback that compresses trimmed turns.
+#
+# Example (commented)
+#
+#   class ConversationStore:
+#       def __init__(self, redis_url: str = "", max_turns: int = 20): ...
+#       async def load(self, session_id: str) -> list[Message]: ...
+#       async def append(self, session_id: str, msg: Message) -> None: ...

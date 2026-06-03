@@ -1,40 +1,61 @@
-# Local development stack. From the repo root:
-#   docker compose -f deploy/docker-compose.yml up --build
+# deploy/docker-compose.yml
 #
-# The API runs offline by default (EchoLLM, in-memory stores, audit-mode harness),
-# so db/cache are optional - uncomment them and set DATABASE_URL / REDIS_URL in .env
-# when you wire real backends.
-services:
-  app:
-    build:
-      context: ..
-      dockerfile: app/Dockerfile
-    env_file:
-      - path: ../.env
-        required: false
-    ports:
-      - "8000:8000"
-    # depends_on:
-    #   db: { condition: service_healthy }
-    #   cache: { condition: service_started }
-
-  # cache:
-  #   image: redis:7-alpine
-  #   ports: ["6379:6379"]
-
-  # db:
-  #   image: pgvector/pgvector:pg16
-  #   environment:
-  #     POSTGRES_USER: app
-  #     POSTGRES_PASSWORD: app
-  #     POSTGRES_DB: app
-  #   ports: ["5432:5432"]
-  #   volumes: ["dbdata:/var/lib/postgresql/data"]
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U app"]
-  #     interval: 5s
-  #     timeout: 3s
-  #     retries: 10
-
+# Purpose
+#   Local development stack. Brings up the API + stateful dependencies (Postgres
+#   with vector extension, Redis) with a single `docker compose up`.
+#
+# When you want a file like this
+#   The first day a contributor other than you tries to run the project. A
+#   working compose file is the lowest-friction onboarding artifact.
+#
+# Why it matters
+#   - One command boots a complete dev environment - no per-OS setup docs.
+#   - Healthchecks on stateful services + `depends_on: condition: service_healthy`
+#     eliminate "the API started before the DB was ready" flakes.
+#   - Named volumes survive `docker compose down` (without `-v`), so dev data
+#     persists across restarts.
+#   - Build context is the REPO ROOT (`context: ..`) so the Dockerfiles can copy
+#     every package the agent needs.
+#
+# What goes in it
+#   - `app`     - built from app/Dockerfile, env_file ../.env, exposes 8000.
+#   - `db`      - Postgres + pgvector (or your vector store) with a healthcheck.
+#   - `cache`   - Redis for semantic cache + conversation memory.
+#   - Named volumes so data survives restarts.
+#   - (Optional) the frontend service if you keep the UI.
+#
+# Example (commented; uncomment + edit)
+#
+# services:
+#   app:
+#     build:
+#       context: ..
+#       dockerfile: app/Dockerfile
+#     env_file:
+#       - path: ../.env
+#         required: false
+#     ports: ["8000:8000"]
+#     depends_on:
+#       db:    { condition: service_healthy }
+#       cache: { condition: service_started }
+#
+#   cache:
+#     image: redis:7-alpine
+#     ports: ["6379:6379"]
+#
+#   db:
+#     image: pgvector/pgvector:pg16
+#     environment:
+#       POSTGRES_USER: app
+#       POSTGRES_PASSWORD: app
+#       POSTGRES_DB: app
+#     ports: ["5432:5432"]
+#     volumes: [ "dbdata:/var/lib/postgresql/data" ]
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U app"]
+#       interval: 5s
+#       timeout: 3s
+#       retries: 10
+#
 # volumes:
 #   dbdata:

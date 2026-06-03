@@ -1,78 +1,87 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "production-agent"
-version = "0.1.0"
-description = "A runnable, production-shaped AI agent: routing, tools, memory, evals, observability, and a runtime defense harness. Wired for Claude Code."
-requires-python = ">=3.11"
-readme = "README.md"
-license = { text = "MIT" }
-
-# Base runtime deps are deliberately light so the template runs offline with
-# zero external services and no API key (see agent/llm.py EchoLLM). The heavier
-# integrations are optional extras below.
-dependencies = [
-    "fastapi>=0.110",
-    "uvicorn[standard]>=0.29",
-    "pydantic>=2.6",
-    "pydantic-settings>=2.2",
-    "pyyaml>=6.0",
-    "httpx>=0.27",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-asyncio>=0.23",
-    "ruff>=0.4",
-    "black>=24.0",
-    "mypy>=1.10",
-    "types-PyYAML",
-]
-# Production integrations - install what you actually use:
-#   redis    : real conversation window + semantic cache backend
-#   anthropic: real LLM client (swap EchoLLM for AnthropicLLM in agent/llm.py)
-#   langgraph: production agent state machine (the hand-rolled Agent is a stand-in)
-redis = ["redis>=5.0"]
-anthropic = ["anthropic>=0.39"]
-langgraph = ["langgraph>=0.2"]
-
-[project.scripts]
-# `python -m app` style entry is via uvicorn; this is a convenience CLI for evals.
-agent-eval = "evaluation.eval_runner:main"
-
-[tool.setuptools.packages.find]
-include = ["app*", "agent*", "memory*", "routing*", "security*", "evaluation*", "observability*"]
-
-[tool.ruff]
-line-length = 100
-target-version = "py311"
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "N", "B", "UP", "S", "SIM"]
-# S101: asserts are fine in tests. S104: binding 0.0.0.0 is intentional in containers.
-ignore = ["S104"]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
-# HarnessBlocked / ReviewRequired are control-flow signals, not errors - the
-# *Error suffix (N818) would misrepresent them.
-"security/harness.py" = ["N818"]
-
-[tool.black]
-line-length = 100
-target-version = ["py311"]
-
-[tool.mypy]
-python_version = "3.11"
-ignore_missing_imports = true
-# Pragmatic strictness for a template: catch real bugs without ceremony.
-warn_unused_ignores = true
-warn_redundant_casts = true
-check_untyped_defs = true
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
+# pyproject.toml
+#
+# Purpose
+#   Single source of truth for Python packaging, dependencies, and tool config
+#   (ruff, black, mypy, pytest). Locking and reproducibility belong here.
+#
+# When you want a file like this
+#   Every modern Python project. PEP 517/518 standard. Replaces setup.py,
+#   setup.cfg, and (in many cases) requirements*.txt.
+#
+# Why it matters
+#   - Declares what the project IS (name, version, deps) and how to build it.
+#   - Centralizes tool config so contributors don't fight about formatter settings.
+#   - Lets editable installs work (`pip install -e .`) so refactors don't break imports.
+#   - Optional-deps (extras) keep the base install small and integrations opt-in.
+#
+# What goes in it
+#   - [build-system]                  - setuptools / hatch / pdm / uv backend
+#   - [project]                       - name, version, description, requires-python,
+#                                       license, readme, runtime dependencies
+#   - [project.optional-dependencies] - dev tooling + integration extras
+#   - [project.scripts]               - CLI entry points
+#   - [tool.setuptools.packages.find] - which top-level packages to include
+#   - [tool.ruff] / [tool.ruff.lint]  - line length 100, rule sets matching
+#                                       .claude/rules/code-style.md
+#   - [tool.black]                    - line length 100
+#   - [tool.mypy]                     - strictness
+#   - [tool.pytest.ini_options]       - asyncio_mode, testpaths
+#
+# Example (commented; uncomment + edit when starting a real project)
+#
+# [build-system]
+# requires = ["setuptools>=68", "wheel"]
+# build-backend = "setuptools.build_meta"
+#
+# [project]
+# name = "<your-project-name>"
+# version = "0.1.0"
+# description = "<one-liner>"
+# requires-python = ">=3.11"
+# readme = "README.md"
+# license = { text = "MIT" }
+# dependencies = [
+#     "fastapi>=0.110",
+#     "uvicorn[standard]>=0.29",
+#     "pydantic>=2.6",
+#     "pydantic-settings>=2.2",
+#     "pyyaml>=6.0",
+#     "httpx>=0.27",
+# ]
+#
+# [project.optional-dependencies]
+# dev       = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4", "black>=24.0", "mypy>=1.10"]
+# redis     = ["redis>=5.0"]
+# anthropic = ["anthropic>=0.39"]
+# langgraph = ["langgraph>=0.2"]
+#
+# [project.scripts]
+# agent-eval = "evaluation.eval_runner:main"
+#
+# [tool.setuptools.packages.find]
+# include = ["app*", "agent*", "memory*", "routing*", "security*", "evaluation*", "observability*"]
+#
+# [tool.ruff]
+# line-length = 100
+# target-version = "py311"
+#
+# [tool.ruff.lint]
+# select = ["E", "F", "I", "N", "B", "UP", "S", "SIM"]
+#
+# [tool.ruff.lint.per-file-ignores]
+# "tests/*" = ["S101"]
+# # HarnessBlocked / ReviewRequired are control-flow signals, not errors:
+# "security/harness.py" = ["N818"]
+#
+# [tool.black]
+# line-length = 100
+# target-version = ["py311"]
+#
+# [tool.mypy]
+# python_version = "3.11"
+# ignore_missing_imports = true
+# check_untyped_defs = true
+#
+# [tool.pytest.ini_options]
+# asyncio_mode = "auto"
+# testpaths = ["tests"]

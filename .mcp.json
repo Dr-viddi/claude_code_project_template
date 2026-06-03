@@ -1,12 +1,20 @@
 {
   "$schema": "https://json.schemastore.org/claude-mcp.json",
 
-  "_intention": "External tool connections for Claude Code, via the Model Context Protocol. Committed to git so the whole team shares the same external surface. Secrets come from env vars - never hardcode tokens here.",
+  "_purpose": "External tool connections for Claude Code, via the Model Context Protocol. Committed so the whole team shares the same external surface. Secrets come from env vars - never hardcode tokens here.",
 
-  "_what_this_should_contain": [
+  "_when_you_want_a_file_like_this": "Whenever you want Claude Code sessions to have access to external systems (GitHub, your DB, Slack) without writing custom tool integrations.",
+
+  "_why_it_matters": [
+    "MCP gives Claude an extensible, typed tool surface (GitHub, Postgres, Slack, your DB, ...) without bespoke integration code.",
+    "Committing the config means every teammate's session sees the same tools - one less per-developer setup step.",
+    "Secrets via env keeps the file safe to commit."
+  ],
+
+  "_what_goes_in_it": [
     "One entry per server under mcpServers.<name>.",
     "Each entry declares the command and args used to launch the server (typically `npx -y @modelcontextprotocol/server-<name>`).",
-    "Sensitive values reference env vars with ${VAR} - defined in .env.example and listed in CLAUDE.md."
+    "Sensitive values reference env vars with ${VAR}; the vars themselves live in .env / .env.example."
   ],
 
   "_example_mcpServers": {

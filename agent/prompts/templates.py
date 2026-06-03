@@ -1,52 +1,40 @@
-"""Per-intent task templates, selected by routing and rendered by the planner.
-
-Hot-swappable: add a new version, keep the old one for comparison. Look up with
-``get_template(intent, version)``.
-"""
-
-from __future__ import annotations
-
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class PromptTemplate:
-    name: str
-    version: str
-    intent: str
-    body: str
-
-    def render(self, **kwargs: str) -> str:
-        return self.body.format(**kwargs)
-
-
-QA_V1 = PromptTemplate(
-    name="qa",
-    version="v1",
-    intent="qa",
-    body=(
-        "Answer the question using the context if provided.\n"
-        "Context:\n{context}\n\nQuestion: {question}"
-    ),
-)
-
-TASK_V1 = PromptTemplate(
-    name="task",
-    version="v1",
-    intent="task",
-    body="Complete the task. Use tools when needed.\nTask: {question}",
-)
-
-_REGISTRY: dict[tuple[str, str], PromptTemplate] = {
-    (QA_V1.intent, QA_V1.version): QA_V1,
-    (TASK_V1.intent, TASK_V1.version): TASK_V1,
-}
-
-
-def get_template(intent: str, version: str = "latest") -> PromptTemplate:
-    if version != "latest":
-        return _REGISTRY[(intent, version)]
-    versions = sorted(v for (i, v) in _REGISTRY if i == intent)
-    if not versions:
-        raise KeyError(intent)
-    return _REGISTRY[(intent, versions[-1])]
+# agent/prompts/templates.py
+#
+# Purpose
+#   Per-intent task templates, selected by the router (`routing/classifier.py`)
+#   and rendered by the planner. Keeps the system prompt stable while the task
+#   framing varies by intent (qa, troubleshoot, summarize, ...).
+#
+# When you want a file like this
+#   When the agent handles more than one *kind* of request. A single mega-prompt
+#   that tries to cover all intents drifts; per-intent templates stay focused.
+#
+# Why it matters
+#   - Each intent gets a clean slot to evolve in. Adding "summarize" doesn't
+#     touch the "troubleshoot" wording.
+#   - Versioned templates pair with the system prompt versioning - evals
+#     compare matched (system_vN, template_vM) pairs cleanly.
+#   - Hot-swappable through a small registry means you can flip prompt versions
+#     from config without redeploying.
+#
+# What goes in it
+#   - A frozen `PromptTemplate` dataclass: `name`, `version`, `intent`, `body`,
+#     plus a `render(**kwargs)` method.
+#   - One constant per intent template.
+#   - A `get_template(intent, version="latest")` accessor.
+#
+# Example (commented)
+#
+#   @dataclass(frozen=True)
+#   class PromptTemplate:
+#       name: str
+#       version: str
+#       intent: str
+#       body: str
+#       def render(self, **kwargs: str) -> str:
+#           return self.body.format(**kwargs)
+#
+#   QA_V1 = PromptTemplate(
+#       name="qa", version="v1", intent="qa",
+#       body="Answer using the context.\nContext:\n{context}\n\nQuestion: {question}",
+#   )

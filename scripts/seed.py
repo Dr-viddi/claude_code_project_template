@@ -1,30 +1,35 @@
-"""Ingest documents from data/raw/ into the vector store. Idempotent.
-
-Minimal version just reports what it would index using the config in
-data/index_config/embedding.yaml. Replace the body with real chunk+embed+upsert
-calls once you wire a vector backend.
-"""
-
-from __future__ import annotations
-
-from pathlib import Path
-
-import yaml
-
-ROOT = Path(__file__).resolve().parent.parent
-RAW = ROOT / "data" / "raw"
-CONFIG = ROOT / "data" / "index_config" / "embedding.yaml"
-
-
-def main() -> None:
-    config = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
-    docs = [p for p in RAW.rglob("*") if p.is_file() and p.name != ".gitkeep"]
-    print(f"seed: {len(docs)} document(s) in {RAW} would be indexed with {config['model']}")
-    for doc in docs:
-        print(f"  - {doc.relative_to(ROOT)}")
-    if not docs:
-        print("  (drop files into data/raw/ to index them)")
-
-
-if __name__ == "__main__":
-    main()
+# scripts/seed.py
+#
+# Purpose
+#   One-shot ingestion script. Reads source documents from data/raw/, runs the
+#   chunking + embedding pipeline (config: data/index_config/embedding.yaml),
+#   and populates the vector store. Idempotent.
+#
+# When you want a file like this
+#   Any agent backed by a vector store. Once you've loaded a corpus twice by
+#   hand you'll want this.
+#
+# Why it matters
+#   - Reproducible indexing: re-running on a fresh DB gives identical state.
+#   - The embedding config (chunk size, overlap, model) lives in YAML so
+#     re-indexing in CI / a different env stays consistent.
+#   - Streaming + idempotency = safe to run on huge corpora without OOM or
+#     duplicate inserts.
+#
+# What goes in it
+#   - A `main()` entry point invoked via `python scripts/seed.py` or `make seed`.
+#   - Reads chunking config from data/index_config/embedding.yaml.
+#   - Streams documents so memory stays bounded for large corpora.
+#   - Logs progress to stdout; failures loud, not silently skipped.
+#
+# Example (commented)
+#
+#   def main() -> None:
+#       config = yaml.safe_load(Path("data/index_config/embedding.yaml").read_text())
+#       for doc in stream_docs(Path("data/raw")):
+#           chunks = chunk(doc, **config)
+#           vectors = embed(chunks, model=config["model"])
+#           upsert(vectors)
+#
+#   if __name__ == "__main__":
+#       main()

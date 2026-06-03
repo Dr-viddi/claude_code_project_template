@@ -1,7 +1,31 @@
-# Chunking + embedding config for scripts/seed.py. Versioned so re-indexing is
-# reproducible. Used only when you wire a real vector store (VECTOR_BACKEND != memory).
-model: text-embedding-3-large
-dimensions: 3072
-chunk_size_tokens: 512
-chunk_overlap_tokens: 64
-splitter: recursive
+# data/index_config/embedding.yaml
+#
+# Purpose
+#   Chunking + embedding config for scripts/seed.py. Versioned in git so
+#   re-indexing is reproducible across environments.
+#
+# When you want a file like this
+#   Any project with a vector store. Putting these knobs in YAML keeps them
+#   out of code and reviewable like any other config change.
+#
+# Why it matters
+#   - Chunk size + overlap are huge quality levers; you'll want to A/B them.
+#     Centralizing them means a chunk-strategy experiment is a one-line PR.
+#   - Pinning the embedding model name (and dimensions) prevents the silent
+#     drift where someone bumps the model and breaks every old vector.
+#
+# What goes in it
+#   - model               : embedding model identifier
+#   - dimensions          : vector size produced by the model
+#   - chunk_size_tokens   : target chunk size (typical 256-1024)
+#   - chunk_overlap_tokens: overlap (typical 10-15% of chunk size)
+#   - splitter            : recursive | by-heading | by-sentence
+#   - metadata_fields     : optional metadata to attach to each vector
+#
+# Example (commented; uncomment + edit)
+#
+# model: text-embedding-3-large
+# dimensions: 3072
+# chunk_size_tokens: 512
+# chunk_overlap_tokens: 64
+# splitter: recursive

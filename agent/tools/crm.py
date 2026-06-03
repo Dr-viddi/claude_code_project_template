@@ -1,41 +1,36 @@
-"""Example domain tool: a CRM. In-memory fake so the template runs with no backend.
-
-Replace ``_FAKE_CUSTOMERS`` and the method bodies with calls to your real system
-(an authenticated client injected via the constructor). Mutations should be gated
-by the harness control mode (see security/contract.yaml).
-"""
-
-from __future__ import annotations
-
-from typing import Any
-from uuid import uuid4
-
-_FAKE_CUSTOMERS: dict[str, dict[str, Any]] = {
-    "cus_001": {"id": "cus_001", "name": "Ada Lovelace", "plan": "pro"},
-    "cus_002": {"id": "cus_002", "name": "Alan Turing", "plan": "free"},
-}
-
-
-class CrmTool:
-    name = "crm"
-    description = "Look up customers and open support tickets in the CRM."
-
-    def __init__(self, customers: dict[str, dict[str, Any]] | None = None) -> None:
-        self._customers = dict(_FAKE_CUSTOMERS if customers is None else customers)
-        self._tickets: list[dict[str, Any]] = []
-
-    async def get_customer(self, customer_id: str) -> dict[str, Any]:
-        if customer_id not in self._customers:
-            from agent.tools import ToolError
-
-            raise ToolError(f"unknown customer: {customer_id}")
-        return self._customers[customer_id]
-
-    async def create_ticket(self, customer_id: str, summary: str) -> dict[str, Any]:
-        await self.get_customer(customer_id)  # validates existence
-        ticket = {"id": f"tkt_{uuid4().hex[:8]}", "customer_id": customer_id, "summary": summary}
-        self._tickets.append(ticket)
-        return ticket
-
-    async def __call__(self, customer_id: str) -> dict[str, Any]:
-        return await self.get_customer(customer_id)
+# agent/tools/crm.py
+#
+# Purpose
+#   Example *domain* tool - stands in for whatever business system the agent acts
+#   on (CRM, ticketing, billing, internal API). Shows the shape every domain tool
+#   should follow.
+#
+# When you want a file like this
+#   When your agent needs to read or change state in a system you own (or a SaaS
+#   you integrate with). Most "useful agent" projects need at least one of these.
+#
+# Why it matters
+#   - Domain tools are where the agent stops being a chatbot and starts doing work.
+#   - Co-locating reads and writes per system means audit/HITL/block decisions
+#     have a clear scope ("the harness gates CRM writes, not CRM reads").
+#   - An injected client lets tests use a fake; production wires the real client
+#     once at startup.
+#
+# What goes in it
+#   - A `CrmTool` class with:
+#       * `name = "crm"` and a `description` precise enough for the planner/LLM
+#         to know when to call it (and, importantly, when NOT to).
+#       * Constructor taking an authenticated client (never built here).
+#       * Async methods for supported operations, e.g. `get_customer(id)`,
+#         `create_ticket(customer_id, summary)`.
+#   - Strict argument validation - LLMs will pass malformed inputs.
+#   - Writes/mutations gated by the harness control mode (contract.yaml).
+#
+# Example (commented)
+#
+#   class CrmTool:
+#       name = "crm"
+#       description = "Look up customers and manage support tickets in the CRM."
+#       def __init__(self, client): self._client = client
+#       async def get_customer(self, customer_id: str) -> dict: ...
+#       async def create_ticket(self, customer_id: str, summary: str) -> dict: ...

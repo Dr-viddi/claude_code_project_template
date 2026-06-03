@@ -1,4 +1,4 @@
-# Package marker for the `tests` directory.
+# Package marker for `tests`.
 #
-# Pytest discovers `test_*.py` files automatically; this file is here only so
+# pytest discovers `test_*.py` files automatically; this file exists only so
 # imports like `from tests.helpers import ...` work cleanly.
