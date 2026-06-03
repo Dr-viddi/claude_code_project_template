@@ -1,16 +1,20 @@
 {
-  "_description": "Curated question/answer pairs used to detect regressions in the RAG pipeline. Replace the example items below with your own. Update this file whenever prompts or retrieval logic change (see CLAUDE.md workflow rule #4).",
+  "_description": "Curated question/expected pairs used by eval_runner.py to detect regressions in the agent (routing, tool use, memory, answer quality). Replace the example schema below with your own items. Update this file whenever prompts, tools, or routing change (see CLAUDE.md workflow rules).",
   "_schema": {
     "id": "stable identifier; never renumbered",
-    "question": "exact prompt to send to the pipeline",
-    "expected_keywords": "list of substrings that must appear in the answer",
-    "min_score": "minimum semantic-similarity score against a reference answer",
+    "query": "exact user input to send to the agent",
+    "intent": "expected intent label from routing/classifier.py",
+    "expected_tools": "tools the agent should (or should not) call",
+    "expected_keywords": "substrings that must appear in the answer",
+    "min_score": "minimum judge score required to pass",
     "category": "optional tag for slicing results (e.g. 'multi-hop', 'refusal')"
   },
   "_example_item": {
     "id": "q-0001",
-    "question": "What does this template provide?",
-    "expected_keywords": ["claude code", "template", "rag"],
+    "query": "What does this template provide?",
+    "intent": "qa",
+    "expected_tools": [],
+    "expected_keywords": ["agent", "template", "defense harness"],
     "min_score": 0.7,
     "category": "smoke"
   },

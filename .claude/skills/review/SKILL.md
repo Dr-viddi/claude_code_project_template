@@ -15,10 +15,9 @@ the task context matches (keywords: "review", "look over", "feedback on this PR"
 2. **Style** - `.claude/rules/code-style.md` compliance.
 3. **Tests** - is the change tested? Does it regress existing tests?
 4. **Architecture** - does it respect the layering described in `CLAUDE.md`?
-5. **Security** - if `app/security/`, `app/agents/`, or any auth path changed, escalate
-   to the `security-auditor` sub-agent.
-6. **Observability** - new code paths in `app/services/` need tracing via
-   `observability/tracer.py`.
+5. **Security** - if `security/`, `agent/tools/`, `routing/`, or any auth path changed,
+   escalate to the `security-auditor` sub-agent.
+6. **Observability** - new agent nodes/tools need tracing via `observability/tracer.py`.
 
 ## Output format
 
@@ -28,5 +27,5 @@ description, suggested fix.
 ## When to fork into a sub-agent
 
 If the diff is larger than ~500 lines or spans multiple subsystems, fork into the
-`code-reviewer` sub-agent (own context window). For diffs touching `app/security/`,
-always also fork into `security-auditor`.
+`code-reviewer` sub-agent (own context window). For diffs touching `security/` or
+`agent/tools/`, always also fork into `security-auditor`.

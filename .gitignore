@@ -43,8 +43,8 @@ data/processed/*
 !data/processed/.gitkeep
 
 # Eval outputs
-evaluation/eval_results/*
-!evaluation/eval_results/.gitkeep
+evaluation/results/*
+!evaluation/results/.gitkeep
 
 # Frontend build
 frontend/static/build/

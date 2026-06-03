@@ -1,0 +1,4 @@
+# Tracked evaluation history lands here, one subdirectory per experiment/date:
+#   evaluation/results/<experiment>/<date>/report.json
+#   evaluation/results/<experiment>/<date>/summary.md
+# Actual result files are gitignored (see .gitignore); this .gitkeep preserves the dir.

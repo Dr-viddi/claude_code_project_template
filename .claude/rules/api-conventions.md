@@ -21,8 +21,8 @@ Uniform error envelope:
 ```json
 {
   "error": {
-    "code": "RETRIEVAL_TIMEOUT",
-    "message": "Vector store did not respond within 5s",
+    "code": "TOOL_TIMEOUT",
+    "message": "web_search did not respond within 5s",
     "trace_id": "abc123"
   }
 }
@@ -39,5 +39,8 @@ Uniform error envelope:
 ## Security
 
 - Every route requires authentication except `/healthz` and `/metrics`.
-- Input passes through `app/security/input_guard.py` before reaching pipeline logic.
-- Output passes through `app/security/output_filter.py` before the client sees it.
+- The agent runs inside the runtime defense harness (`security/adrian_init.py`):
+  every tool call and reasoning step is gated by the contract in
+  `security/contract.yaml` before it executes.
+- PII is scrubbed on egress per the harness `pii` policy; never log raw request
+  or response bodies.

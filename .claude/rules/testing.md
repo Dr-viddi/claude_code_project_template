@@ -6,16 +6,17 @@ Scope: `tests/` and `evaluation/`.
 
 - **Tests verify code correctness, evals verify feature quality.** Both are required.
 - Every bug fix gets a regression test before the fix lands.
-- Every new prompt or retrieval change updates `evaluation/golden_dataset.json`.
+- Every new prompt, tool, or routing change updates `evaluation/golden_dataset.json`.
 
 ## Layout
 
 ```
 tests/
-├── test_retrieval.py     # hybrid_retriever + reranker
-├── test_cache.py         # semantic cache hit/miss
-├── test_routing.py       # query router + adaptive router
-└── conftest.py           # shared fixtures
+├── test_agent.py        # agent graph, nodes, memory integration
+├── test_tools.py        # agent/tools: validation, timeouts, contracts
+├── test_security.py     # harness wiring + contract.yaml parsing/gating
+├── test_routing.py      # intent classifier + handler registry
+└── conftest.py          # shared fixtures (fake_llm, fake_redis, fake_deps, ...)
 ```
 
 ## Conventions
@@ -23,20 +24,23 @@ tests/
 - **Framework:** pytest.
 - **Fixtures:** in `conftest.py`, scoped as narrowly as possible.
 - **Naming:** `test_<unit>_<scenario>_<expected>`. Example:
-  `test_reranker_empty_input_returns_empty_list`.
+  `test_classifier_smalltalk_returns_chitchat`.
 - **AAA structure:** Arrange / Act / Assert, with a blank line between sections.
-- **Mock at the boundary.** Mock the LLM client, not your own services.
+- **Mock at the boundary.** Mock the LLM client and the harness backend, not your
+  own nodes/services.
 - **No network in unit tests.** Use VCR / recorded responses for HTTP.
 
 ## Coverage
 
 - Library code: aim for 90%+ branch coverage.
 - API routes: every status code path covered.
-- Agents and prompts: covered via golden-dataset evals, not unit tests.
+- Agent behavior and prompts: covered via golden-dataset evals + judges, not unit tests.
+- Security: contract parsing and gating logic are unit-tested; the vendor backend is mocked.
 
 ## Evaluation
 
-- `evaluation/offline_eval.py` runs nightly against `golden_dataset.json` in CI.
-- `evaluation/online_monitor.py` samples production traffic; results land in
-  `evaluation/eval_results/<date>/`.
+- `evaluation/eval_runner.py offline` runs nightly against `golden_dataset.json` in CI.
+- `evaluation/eval_runner.py online` samples production traffic.
+- Judges in `evaluation/judges/` score each item; results land in
+  `evaluation/results/<experiment>/<date>/`.
 - A change must not regress the golden-set scores by more than 2% to merge.

@@ -6,8 +6,8 @@
 #
 # What this file should contain:
 #   - A `span(name, **attrs)` context manager that opens / closes a span.
-#   - Each pipeline stage in `app/services/rag_pipeline.py` should wrap its work
-#     in `with span("retrieve", query=q): ...`.
+#   - Each agent node in `agent/nodes.py` should wrap its work in
+#     `with span("act", tool=name): ...`.
 #   - Helpers for attaching standard attributes: `trace_id`, `stage`, `model`,
 #     `prompt_version`, token counts.
 #   - No-op fallback when tracing is disabled so unit tests don't need a backend.

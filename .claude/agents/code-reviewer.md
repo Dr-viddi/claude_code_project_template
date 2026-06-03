@@ -17,8 +17,9 @@ Read the supplied diff (and surrounding files for context) and produce a focused
 1. **Correctness** - bugs, missed edge cases, wrong types, off-by-one errors.
 2. **Style** - violations of `.claude/rules/code-style.md`.
 3. **Tests** - is the change tested? Are tests meaningful or just snapshot dumps?
-4. **Architecture** - does the change respect the layers in `CLAUDE.md`? No leaks
-   from `services/` into `components/`, no business logic in route handlers.
+4. **Architecture** - does the change respect the layers in `CLAUDE.md`? No business
+   logic in route handlers; tools only reach the network via `agent/tools/`; the
+   agent only mutates state through `memory/`; security stays in `security/`.
 5. **Performance** - allocations in hot loops, N+1 queries, missing caches.
 6. **Security smell** - anything that should escalate to `security-auditor`.
 
@@ -31,11 +32,11 @@ Read the supplied diff (and surrounding files for context) and produce a focused
 ## Output format
 
 ```
-SEVERITY  FILE:LINE                      ISSUE
-blocker   app/services/rag_pipeline.py:42 Unhandled None from retriever crashes downstream.
-major     app/components/reranker.py:18   No timeout - hangs on slow upstream.
-minor     tests/test_routing.py:7         Test name doesn't describe scenario.
-nit       app/main.py:99                  Stale import.
+SEVERITY  FILE:LINE                   ISSUE
+blocker   agent/graph.py:42            Loop has no max-iteration guard; can spin forever.
+major     agent/tools/web_search.py:18 No timeout - hangs on slow upstream.
+minor     tests/test_routing.py:7      Test name doesn't describe scenario.
+nit       app/main.py:99               Stale import.
 ```
 
 End with a one-line verdict: `READY` / `CHANGES REQUESTED` / `BLOCKED`.

@@ -5,16 +5,24 @@
 #   (ruff, black, mypy, pytest). Locking and reproducibility belong here.
 #
 # What this file should declare:
-#   - [build-system]                  - setuptools or hatch / pdm / uv
+#   - [build-system]                  - setuptools or hatch / pdm / uv.
 #   - [project]                       - name, version, description, requires-python,
-#                                       license, readme, runtime dependencies
-#   - [project.optional-dependencies] - dev tooling (pytest, ruff, black, mypy)
-#   - [tool.setuptools.packages.find] - which top-level packages to include
+#                                       license, readme, runtime dependencies. For an
+#                                       agent app this typically includes fastapi,
+#                                       uvicorn, pydantic(-settings), httpx, redis,
+#                                       a graph lib (langgraph/langchain), pyyaml
+#                                       (to read security/contract.yaml), and your
+#                                       runtime-defense SDK.
+#   - [project.optional-dependencies] - dev tooling (pytest, pytest-asyncio, ruff,
+#                                       black, mypy).
+#   - [tool.setuptools.packages.find] - include the top-level packages:
+#                                       app, agent, memory, routing, security,
+#                                       evaluation, observability.
 #   - [tool.ruff] / [tool.ruff.lint]  - line length 100, rule sets matching
-#                                       `.claude/rules/code-style.md`
-#   - [tool.black]                    - line length 100
-#   - [tool.mypy]                     - strict = true
-#   - [tool.pytest.ini_options]       - asyncio_mode, testpaths
+#                                       `.claude/rules/code-style.md`.
+#   - [tool.black]                    - line length 100.
+#   - [tool.mypy]                     - strict = true.
+#   - [tool.pytest.ini_options]       - asyncio_mode, testpaths.
 #
 # Example (commented; remove the leading '#' to activate):
 #
@@ -36,10 +44,16 @@
 #     "pydantic-settings>=2.2",
 #     "httpx>=0.27",
 #     "redis>=5.0",
+#     "langgraph>=0.2",
+#     "pyyaml>=6.0",
+#     # "adrian-sdk>=0.1",   # runtime defense harness (or your provider)
 # ]
 #
 # [project.optional-dependencies]
 # dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4", "black>=24.0", "mypy>=1.10"]
+#
+# [tool.setuptools.packages.find]
+# include = ["app*", "agent*", "memory*", "routing*", "security*", "evaluation*", "observability*"]
 #
 # [tool.ruff]
 # line-length = 100

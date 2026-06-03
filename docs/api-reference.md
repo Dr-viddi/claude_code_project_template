@@ -9,13 +9,13 @@ Liveness probe. Returns `{"status": "ok"}` with HTTP 200.
 
 ## `POST /v1/chat`
 
-Run a chat turn through the RAG pipeline.
+Run a turn through the agent.
 
 **Request**
 
 ```json
 {
-  "conversation_id": "1ed3f2a4-...",
+  "session_id": "1ed3f2a4-...",
   "messages": [
     {"role": "user", "content": "What does this template provide?"}
   ]
@@ -26,8 +26,9 @@ Run a chat turn through the RAG pipeline.
 
 ```json
 {
-  "conversation_id": "1ed3f2a4-...",
+  "session_id": "1ed3f2a4-...",
   "answer": "...",
+  "tools_used": ["web_search"],
   "citations": [
     {"doc_id": "README.md", "score": 0.84, "snippet": "..."}
   ],
@@ -41,16 +42,17 @@ Run a chat turn through the RAG pipeline.
 ```json
 {
   "error": {
-    "code": "INPUT_GUARD_VIOLATION",
-    "message": "Prompt-injection pattern detected.",
+    "code": "HARNESS_BLOCKED",
+    "message": "Tool call blocked by the agent contract (severity: critical).",
     "trace_id": "abc123"
   }
 }
 ```
 
-| Code                       | HTTP | When                                         |
-| -------------------------- | ---- | -------------------------------------------- |
-| `INPUT_GUARD_VIOLATION`    | 400  | input_guard rejected the request             |
-| `OUTPUT_GUARD_VIOLATION`   | 502  | output_filter blocked the model response     |
-| `RETRIEVAL_TIMEOUT`        | 504  | vector store didn't respond in time          |
-| `UPSTREAM_LLM_ERROR`       | 502  | LLM provider returned an error               |
+| Code                       | HTTP | When                                                       |
+| -------------------------- | ---- | ---------------------------------------------------------- |
+| `INTENT_REFUSED`           | 400  | router classified the request as out-of-scope / unsafe     |
+| `HARNESS_BLOCKED`          | 403  | defense harness blocked a tool call (control_mode = block) |
+| `HARNESS_REVIEW_REQUIRED`  | 202  | action paused for human-in-the-loop approval               |
+| `TOOL_TIMEOUT`             | 504  | a tool (web_search, crm, ...) did not respond in time      |
+| `UPSTREAM_LLM_ERROR`       | 502  | LLM provider returned an error                             |

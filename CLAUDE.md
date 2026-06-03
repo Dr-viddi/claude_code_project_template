@@ -6,18 +6,19 @@ push detail into `.claude/rules/*.md` and reference it from here.
 ## Overview
 
 **Name:** `<project-name>`
-**Purpose:** One-paragraph description of what this project does and who uses it.
+**Purpose:** One-paragraph description of what this agent does and who uses it.
 **Status:** alpha / beta / production
 
 ## Tech Stack
 
 - **Language:** Python 3.11+
 - **Web framework:** FastAPI
-- **LLM orchestration:** Bring-your-own (LangChain / LlamaIndex / custom)
+- **Agent orchestration:** LangGraph (state machine: plan → act → observe)
+- **Runtime defense:** `security/` harness wrapping the agent (8 layers)
 - **Vector store:** `<pgvector | qdrant | weaviate | ...>`
-- **Cache:** Redis (semantic cache + conversation memory)
-- **Frontend:** Streamlit / Next.js (containerized separately)
-- **Container runtime:** Docker + docker-compose
+- **Cache / short-term memory:** Redis
+- **Long-term memory:** episodic + entity store (`<pgvector | dedicated memory db>`)
+- **Container runtime:** Docker + docker-compose (`deploy/`)
 - **Tests:** pytest
 - **Lint/format:** ruff + black
 - **Type check:** mypy
@@ -25,22 +26,27 @@ push detail into `.claude/rules/*.md` and reference it from here.
 ## Architecture
 
 ```
-client → frontend → app/main.py (FastAPI)
-                      → services/rag_pipeline → components/{retriever, reranker}
-                      → services/semantic_cache (Redis)
-                      → agents/{grader, decomposer, router}
-                      → security/{input,content,output} guards
-                      → observability/{tracer, cost_tracker, feedback}
+client → app/main.py (FastAPI)
+           → routing/ (classify intent → resolve handler)
+           → agent/graph.py (LangGraph: plan → act → observe loop)
+                → agent/nodes.py        (plan, act, observe, grade)
+                → agent/tools/          (crm, web_search, code_search)
+                → agent/prompts/        (system + per-intent templates)
+           → memory/ (conversation window · semantic cache · long-term store)
+           → security/ (runtime defense harness gates every tool call)
+           → observability/ (tracer · cost_tracker · feedback)
 ```
 
-See `docs/architecture.md` for the full diagram.
+Every tool call and reasoning step passes through the **runtime defense harness**
+(`security/adrian_init.py`, configured by `security/contract.yaml`) before it
+executes. See `docs/architecture.md` for the full diagram and the 8 layers.
 
 ## Conventions
 
 Modular rules live in `.claude/rules/`:
 
 - `code-style.md` - formatting, naming, import order
-- `testing.md` - what to test, fixtures, golden datasets
+- `testing.md` - what to test, fixtures, golden datasets, judges
 - `api-conventions.md` - error envelope, versioning, schema rules
 
 ## Workflow Rules
@@ -48,25 +54,27 @@ Modular rules live in `.claude/rules/`:
 1. **Never commit `CLAUDE.local.md`, `.env`, or `.claude/settings.local.json`.**
 2. **Always run `make check` before pushing** (lint + type + test).
 3. **Add a regression test** for every bug fix.
-4. **Update `evaluation/golden_dataset.json`** when prompts or retrieval logic change.
-5. **Sub-agents for risky reviews.** Use `/review` (code-reviewer) and `/security-review`
-   (security-auditor) on any change touching `app/security/` or `app/agents/`.
+4. **Update `evaluation/golden_dataset.json`** when prompts, tools, or routing change.
+5. **Guard the guardrails.** Any change to `security/` (harness or `contract.yaml`)
+   or `agent/tools/` must run `/review` (code-reviewer) and `/security-review`
+   (security-auditor) before merge.
 
 ## Common Commands
 
 ```bash
 make install      # editable install + dev deps
-make run          # docker-compose up
+make run          # docker compose up (deploy/docker-compose.yml)
 make test         # pytest
-make eval         # offline eval against golden dataset
+make eval         # offline eval against golden dataset (evaluation/eval_runner.py)
 make check        # lint + type + test
 ```
 
 ## Hierarchy
 
 This is the root `CLAUDE.md`. Subdirectories may add their own `CLAUDE.md` for
-locality - e.g. `app/agents/CLAUDE.md` for agent-specific conventions. Child files
-are loaded on demand, not at session start.
+locality - e.g. `agent/CLAUDE.md` for agent-specific conventions, or
+`security/CLAUDE.md` for the contract policy. Child files load on demand, not at
+session start.
 
 ## Personal Overrides
 

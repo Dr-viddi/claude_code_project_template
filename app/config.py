@@ -1,16 +1,20 @@
 # app/config.py
 #
 # Intention:
-#   Centralized configuration. All tunables - model names, backend URLs, feature
-#   flags - are loaded from environment variables (12-factor). Nothing else in the
-#   codebase should read `os.environ` directly.
+#   Centralized configuration. All tunables - model names, backend URLs, harness
+#   mode flags - are loaded from environment variables (12-factor). Nothing else in
+#   the codebase should read `os.environ` directly.
 #
 # What this file should contain:
 #   - A `Settings` class built on `pydantic_settings.BaseSettings`.
-#   - One field per env var, with sensible defaults for local development.
-#   - A `get_settings()` accessor cached with `functools.lru_cache` so the object
-#     is built once per process.
-#   - Reference: see `.env.example` for the variables this should expose.
+#   - One field per env var, with sensible local-dev defaults. Cover at least:
+#       * LLM: provider, model.
+#       * Stores: database_url, redis_url, vector_backend.
+#       * Harness: adrian_api_key, control_mode (audit|human_in_the_loop|block),
+#         harness_enabled.
+#       * Observability: log_level.
+#   - A `get_settings()` accessor cached with `functools.lru_cache`.
+#   - Reference: `.env.example` lists every variable this should expose.
 #
 # Example (commented):
 #
@@ -23,6 +27,9 @@
 #       llm_model: str = "claude-sonnet-4-6"
 #       database_url: str = "postgresql://localhost/app"
 #       redis_url: str = "redis://localhost:6379/0"
+#       harness_enabled: bool = True
+#       control_mode: str = "human_in_the_loop"
+#       adrian_api_key: str = ""
 #
 #   @lru_cache
 #   def get_settings() -> Settings:

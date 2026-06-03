@@ -15,8 +15,9 @@ Steps:
    - Correctness bugs (off-by-one, wrong types, missed edge cases)
    - Violations of `.claude/rules/code-style.md`
    - Missing or insufficient tests
-   - Performance regressions in hot paths (`app/services/rag_pipeline.py`,
-     `app/components/hybrid_retriever.py`)
-   - Anything that should also trigger `/security-review`
+   - Performance regressions in hot paths (`agent/graph.py`, `agent/nodes.py`,
+     `agent/tools/`)
+   - Anything that should also trigger `/security-review` (changes to `security/`
+     or `agent/tools/`)
 4. Report findings as a numbered list with file:line references.
 5. Do **not** apply fixes automatically - return the list for human review.

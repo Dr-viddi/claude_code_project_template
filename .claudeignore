@@ -30,7 +30,7 @@ data/processed/
 *.onnx
 
 # Eval artifacts
-evaluation/eval_results/
+evaluation/results/
 
 # Local Claude state
 .claude/agent-memory/

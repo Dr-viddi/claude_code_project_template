@@ -1,0 +1,50 @@
+# security/contract.yaml
+#
+# Intention:
+#   The "agent contract" - the declarative configuration the runtime defense harness
+#   (security/adrian_init.py) enforces. This is layer 1 of the 8-layer harness:
+#   it defines what the agent is allowed to do, how strictly to enforce it, how to
+#   score verdicts, which control mode to run in, and where to send alerts.
+#
+#   Checked into git so the whole team reviews changes to the agent's guardrails.
+#   Secrets (api keys, webhook URLs) come from env vars - never inline them here.
+#
+# What this file should declare:
+#   - scope            : what the agent may do (allowed tools, domains, data classes).
+#   - boundaries       : hard limits (forbidden tools, blocked destinations, max spend).
+#   - pii              : which PII classes to scrub and whether server-side LLM sweep is on.
+#   - severity_tiers   : the score bands (low -> critical) and per-agent action threshold.
+#   - control_mode     : audit | human_in_the_loop | block  (how verdicts are enforced).
+#   - alerts           : severity gate + channel routing (Slack/Discord) for notifications.
+#
+# Example (commented; remove the leading '#' to activate and edit):
+#
+# version: 1
+# agent: production-agent
+#
+# scope:
+#   allowed_tools: [crm, web_search, code_search]
+#   allowed_domains: ["api.internal.example.com"]
+#   data_classes: [public, internal]
+#
+# boundaries:
+#   forbidden_tools: [shell, filesystem_write]
+#   blocked_destinations: ["*.unknown-host.com"]
+#   max_usd_per_session: 2.00
+#
+# pii:
+#   client_side_regex: [email, phone, national_id]
+#   server_side_llm_sweep: true          # catches names + contextual identifiers
+#
+# severity_tiers:
+#   bands: [low, medium, high, critical]
+#   action_threshold: high               # act on verdicts at this tier or above
+#
+# control_mode: human_in_the_loop        # audit | human_in_the_loop | block
+#
+# alerts:
+#   min_severity: high
+#   channels:
+#     slack: "${SLACK_WEBHOOK_URL}"
+#     discord: "${DISCORD_WEBHOOK_URL}"
+#   payload: [verdict, reasoning, action]
